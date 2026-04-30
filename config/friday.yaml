@@ -1,0 +1,110 @@
+# ============================================================
+# FRIDAY :: RUNTIME CONFIG
+# ============================================================
+
+version: "1.0.0"
+codename: "Autonomous Sovereign"
+boot_message: "Friday online. Autonomy engaged. Standing by."
+
+# ---------------- Autonomy ----------------
+autonomy:
+  enabled: true
+  tick_interval_minutes: 15          # how often the autonomy loop fires
+  max_actions_per_tick: 3            # safety cap
+  goals_path: "~/AI/friday/config/goals.yaml"
+  policies_path: "~/AI/friday/config/policies.yaml"
+  approval_file: "~/AI/friday/data/pending_approvals.json"
+  reflection_path: "~/AI/friday/data/reflections.jsonl"
+  plan_log_path: "~/AI/friday/data/plans.jsonl"
+  action_log_path: "~/AI/friday/data/actions.jsonl"
+
+# ---------------- Engine Routing ----------------
+engines:
+  default: ollama                    # free, local, fast
+  fallback: claude                   # when ollama fails or complexity demands it
+  escalation_triggers:               # route to claude if query matches
+    - "code"
+    - "complex"
+    - "research"
+    - "write a post"
+    - "strategy"
+
+  ollama:
+    host: "http://localhost:11434"
+    model: "llama3.2:latest"               # Local fast model
+    model_heavy: "gemma3:4b"        # Local heavy model
+    context_window: 128000
+    temperature: 0.4
+
+  claude:
+    model: "claude-sonnet-4-6"        # current latest non-opus
+    model_heavy: "claude-opus-4-7"    # for strategic questions
+    max_tokens: 2000
+    temperature: 0.5
+    # API key picked up from env: ANTHROPIC_API_KEY
+
+# ---------------- Memory ----------------
+memory:
+  path: "~/AI/friday/data/memory.json"
+  max_recent_turns: 40               # short-term dialogue
+  max_facts: 500                     # long-term semantic facts
+  max_events: 1000                   # episodic event log
+
+# ---------------- Proactive Loops ----------------
+loops:
+  morning_briefing:
+    enabled: true
+    time: "06:00"
+    push_to: ["telegram", "log"]
+  evening_debrief:
+    enabled: true
+    time: "22:00"
+    push_to: ["telegram", "log"]
+  heartbeat:
+    enabled: true
+    interval_minutes: 60
+    quiet_hours: ["23:00", "05:30"]  # Friday shuts up while Bhargav sleeps
+    day_job_hours: ["09:00", "18:00"]  # only emergencies during work
+    skip_sundays: true
+
+# ---------------- Channels ----------------
+channels:
+  telegram:
+    enabled: true
+    # TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID from ~/.openclaw/.env
+  cli:
+    enabled: true
+  webhook:
+    enabled: false
+    port: 5090
+
+# ---------------- Integrations ----------------
+nexus:
+  daily_briefing: "~/nexus-omega/command-center/daily_briefing.py"
+  empire_dashboard: "http://localhost:5055/api/status"
+  trading_state: "~/nexus-omega/trading-bot/brain_state.json"
+  scorecard_add: "~/agency/content/weekly_scorecard.py"
+  post_generator: "~/agency/content/post_generator.py"
+  deploy_bot: "~/agency/tools/deploy_bot.py"
+  leads_csv: "~/agency/outreach/leads.csv"
+  crm_tracker: "~/agency/outreach/crm_tracker.csv"
+  auditmind_api: "http://localhost:8000"
+
+# ---------------- Security ----------------
+security:
+  allowlist_shell_commands:
+    - "ls"
+    - "cat"
+    - "ps"
+    - "df"
+    - "python3"
+    - "ollama"
+    - "git status"
+    - "git log"
+    - "pm2 list"
+  block_destructive: true           # no rm -rf, no format, no curl|sh
+  require_confirm_for:
+    - "send_whatsapp"
+    - "publish_post"
+    - "execute_trade"
+    - "delete"

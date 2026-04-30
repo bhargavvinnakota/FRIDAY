@@ -1,0 +1,42 @@
+{"ts": "2026-04-20T14:29:58.167726", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:31:24.393475", "channel": "morning", "text": "*\ud83e\udde0 Friday :: Monday 20 Apr*\n\n50 leads with phone numbers are actionable. Schedule 3-4 calls for today. CRM total_outreach is 1; replied, qualified, and closed are all 0.\n\n---\n# \ud83e\udde0 NEXUS DAILY BRIEFING \u2014 Monday, 20 April 2026\n\n## \ud83d\udcc8 ENGINE B \u2014 Trading (Nexus Omega)\n\n- Brain state: *not available* \u2014 run brain refresh\n- **Open positions**: 0\n\n**Action**: Check dashboard at http://localhost:5050 (5 min max)\n\n## \ud83d\udcbc ENGINE A \u2014 Agency\n\n- **Active clients**: 0\n- **Total conversation sessions tracked**: 0\n\n**Action**: Reply to overnight client WhatsApp messages (10 min max)\n\n## \u270d\ufe0f CONTENT\n\n- **Week**: 1 of 52\n- **Today's theme**: Client win / build update\n- **Suggested formula**: See `~/agency/content/content_calendar.md` for Week 1 specifics\n\n**Action**: Generate draft with:\n  `python3 ~/agency/content/post_generator.py --theme 'Client win / build update' --context '...'`\n\n## \ud83c\udfaf TODAY'S PRIORITIES\n\n1. Send 20 outreach messages (leads.csv)\n2. Post today's LinkedIn content\n3. Check all client bots ("}
+{"ts": "2026-04-20T14:31:39.349441", "channel": "evening", "text": "*\ud83c\udf19 Friday :: Debrief*\n\nDebrief:\n\n1. Grind.\n2. \u20b90 revenue this week.\n3. Reach 5 new WhatsApp bot clients by tomorrow.\n4. Log your scorecard tonight: `python3 ~/agency/content/weekly_scorecard.py add`"}
+{"ts": "2026-04-20T14:31:44.906208", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:31:56.528418", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:32:16.036815", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:32:43.471608", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:33:08.776584", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:41:39.507453", "channel": "stress_test", "text": "test entry 1"}
+{"ts": "2026-04-20T14:41:39.508085", "channel": "stress_test", "text": "test entry 2"}
+{"ts": "2026-04-20T14:41:52.240392", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:41:52.245552", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:41:57.869009", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:42:16.592645", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:47:21.651283", "channel": "stress_test", "text": "test entry 1"}
+{"ts": "2026-04-20T14:47:21.652046", "channel": "stress_test", "text": "test entry 2"}
+{"ts": "2026-04-20T14:47:35.169599", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:47:35.174816", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:47:42.219172", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:47:59.446426", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:48:54.272688", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:52:01.192103", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:52:07.139838", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:52:27.154158", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:52:47.168181", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:53:07.185440", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:53:27.199650", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:53:47.218355", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:54:07.238534", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:54:27.265178", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:54:47.288511", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:55:07.312710", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T14:55:27.328899", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T23:16:23.715231", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T23:17:28.352645", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T23:18:13.487936", "channel": "stress_test", "text": "test entry 1"}
+{"ts": "2026-04-20T23:18:13.488800", "channel": "stress_test", "text": "test entry 2"}
+{"ts": "2026-04-20T23:18:25.811207", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T23:18:25.824722", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T23:18:32.461515", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T23:18:49.364905", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}
+{"ts": "2026-04-20T23:20:12.283040", "channel": "suppressed_alert", "text": "[content_missing] Today is a post day (Mon). No post archived yet."}

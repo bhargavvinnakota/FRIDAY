@@ -1,0 +1,15 @@
+╔══════════════════════════════════════╗
+║  F.R.I.D.A.Y :: DAEMON v0.1.0        ║
+║  Sovereign Core · 24/7 operation     ║
+╚══════════════════════════════════════╝
+PID: 78257
+Boot: 2026-04-20T14:52:01.171420
+
+  ✓ telegram thread started
+  ✓ heartbeat thread started
+  ✓ scheduler thread started
+
+Friday is live. Ctrl-C to stop.
+
+[14:52:01] 💓 alerts: ['content_missing']
+📡 Friday Telegram sense online. Listening...

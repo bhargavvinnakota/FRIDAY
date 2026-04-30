@@ -1,0 +1,49 @@
+{
+  "total": 74,
+  "passed": 74,
+  "failed": 0,
+  "rate": 100.0,
+  "duration_s": 8.844595909118652,
+  "sections": {
+    "1. VERSION + CONFIG": {
+      "ok": 8,
+      "fail": 0
+    },
+    "2. SKILLS REGISTRY": {
+      "ok": 12,
+      "fail": 0
+    },
+    "3. PLANNER": {
+      "ok": 10,
+      "fail": 0
+    },
+    "4. POLICY GATE": {
+      "ok": 8,
+      "fail": 0
+    },
+    "5. AUTONOMY ENGINE": {
+      "ok": 10,
+      "fail": 0
+    },
+    "6. REFLECTOR": {
+      "ok": 6,
+      "fail": 0
+    },
+    "7. TELEGRAM APPROVAL COMMANDS": {
+      "ok": 4,
+      "fail": 0
+    },
+    "8. CLI COMMANDS": {
+      "ok": 7,
+      "fail": 0
+    },
+    "9. DAEMON v1.0 BOOT (3s smoke)": {
+      "ok": 5,
+      "fail": 0
+    },
+    "10. END-TO-END FLOW": {
+      "ok": 4,
+      "fail": 0
+    }
+  }
+}

@@ -1,0 +1,426 @@
+[
+  {
+    "id": "b5e8a49b",
+    "skill": "outreach",
+    "operation": "send_approved",
+    "kwargs": {
+      "approval_id": "x"
+    },
+    "reason": "manual test",
+    "status": "rejected",
+    "created_at": "2026-04-20T23:14:26.302902",
+    "rejected_at": "2026-04-20T23:14:26.303296"
+  },
+  {
+    "id": "1c97f02e",
+    "skill": "outreach",
+    "operation": "send_approved",
+    "kwargs": {
+      "approval_id": "x"
+    },
+    "reason": "test",
+    "status": "held",
+    "created_at": "2026-04-20T23:16:22.644212",
+    "hold_until": 1776710782.644534
+  },
+  {
+    "id": "bfe35383",
+    "skill": "outreach",
+    "operation": "send_approved",
+    "kwargs": {},
+    "reason": "test2",
+    "status": "rejected",
+    "created_at": "2026-04-20T23:16:22.644677",
+    "rejected_at": "2026-04-20T23:16:22.644782"
+  },
+  {
+    "id": "df556eed",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "approve-test",
+    "status": "executed",
+    "created_at": "2026-04-20T23:16:22.644877",
+    "approved_at": "2026-04-20T23:16:22.644968",
+    "result": {
+      "ok": false,
+      "data": {
+        "disk_pct_used": 95.6,
+        "disk_free_gb": 10.72,
+        "disk_ok": false,
+        "memory_file_exists": true,
+        "memory_file_kb": 119,
+        "memory_file_ok": true,
+        "ollama_up": true,
+        "python_version": "3.13.2"
+      },
+      "error": null,
+      "artifacts": [],
+      "followup": []
+    }
+  },
+  {
+    "id": "1697456c",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test",
+    "status": "executed",
+    "created_at": "2026-04-20T23:16:22.678875",
+    "approved_at": "2026-04-20T23:16:22.679051",
+    "result": {
+      "ok": false,
+      "data": {
+        "disk_pct_used": 95.6,
+        "disk_free_gb": 10.72,
+        "disk_ok": false,
+        "memory_file_exists": true,
+        "memory_file_kb": 120,
+        "memory_file_ok": true,
+        "ollama_up": true,
+        "python_version": "3.13.2"
+      },
+      "error": null,
+      "artifacts": [],
+      "followup": []
+    }
+  },
+  {
+    "id": "1c16049d",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test-no",
+    "status": "rejected",
+    "created_at": "2026-04-20T23:16:22.682446",
+    "rejected_at": "2026-04-20T23:16:22.682578"
+  },
+  {
+    "id": "6c62d7d6",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test-hold",
+    "status": "held",
+    "created_at": "2026-04-20T23:16:22.682698",
+    "hold_until": 1776710782.682834
+  },
+  {
+    "id": "18f593e6",
+    "skill": "outreach",
+    "operation": "send_approved",
+    "kwargs": {
+      "approval_id": "x"
+    },
+    "reason": "test",
+    "status": "held",
+    "created_at": "2026-04-20T23:17:27.278442",
+    "hold_until": 1776710847.278648
+  },
+  {
+    "id": "2fffee78",
+    "skill": "outreach",
+    "operation": "send_approved",
+    "kwargs": {},
+    "reason": "test2",
+    "status": "rejected",
+    "created_at": "2026-04-20T23:17:27.278815",
+    "rejected_at": "2026-04-20T23:17:27.278928"
+  },
+  {
+    "id": "5670ea4a",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "approve-test",
+    "status": "executed",
+    "created_at": "2026-04-20T23:17:27.279041",
+    "approved_at": "2026-04-20T23:17:27.279148",
+    "result": {
+      "ok": false,
+      "data": {
+        "disk_pct_used": 95.6,
+        "disk_free_gb": 10.71,
+        "disk_ok": false,
+        "memory_file_exists": true,
+        "memory_file_kb": 121,
+        "memory_file_ok": true,
+        "ollama_up": true,
+        "python_version": "3.13.2"
+      },
+      "error": null,
+      "artifacts": [],
+      "followup": []
+    }
+  },
+  {
+    "id": "fe0177e0",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test",
+    "status": "executed",
+    "created_at": "2026-04-20T23:17:27.316339",
+    "approved_at": "2026-04-20T23:17:27.316792",
+    "result": {
+      "ok": false,
+      "data": {
+        "disk_pct_used": 95.6,
+        "disk_free_gb": 10.71,
+        "disk_ok": false,
+        "memory_file_exists": true,
+        "memory_file_kb": 122,
+        "memory_file_ok": true,
+        "ollama_up": true,
+        "python_version": "3.13.2"
+      },
+      "error": null,
+      "artifacts": [],
+      "followup": []
+    }
+  },
+  {
+    "id": "64f9a4e6",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test-no",
+    "status": "rejected",
+    "created_at": "2026-04-20T23:17:27.319508",
+    "rejected_at": "2026-04-20T23:17:27.319677"
+  },
+  {
+    "id": "3a70b125",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test-hold",
+    "status": "held",
+    "created_at": "2026-04-20T23:17:27.319839",
+    "hold_until": 1776710847.319977
+  },
+  {
+    "id": "71f407df",
+    "skill": "watchdog",
+    "operation": "alert_if_critical",
+    "kwargs": {},
+    "reason": "goal=drift_detection \u00b7 risk=medium requires higher autonomy than supervised",
+    "status": "pending",
+    "created_at": "2026-04-21T05:34:36.547971"
+  },
+  {
+    "id": "7e45dadf",
+    "skill": "watchdog",
+    "operation": "alert_if_critical",
+    "kwargs": {},
+    "reason": "goal=drift_detection \u00b7 risk=medium requires higher autonomy than supervised",
+    "status": "pending",
+    "created_at": "2026-04-21T05:49:42.446041"
+  },
+  {
+    "id": "93a981e7",
+    "skill": "watchdog",
+    "operation": "alert_if_critical",
+    "kwargs": {},
+    "reason": "goal=drift_detection \u00b7 risk=medium requires higher autonomy than supervised",
+    "status": "pending",
+    "created_at": "2026-04-21T08:51:54.675815"
+  },
+  {
+    "id": "270f86f5",
+    "skill": "content",
+    "operation": "queue_for_approval",
+    "kwargs": {},
+    "reason": "goal=agency_outreach_daily \u00b7 risk=medium requires higher autonomy than supervised",
+    "status": "pending",
+    "created_at": "2026-04-21T20:26:12.054644"
+  },
+  {
+    "id": "3f31c097",
+    "skill": "outreach",
+    "operation": "send_approved",
+    "kwargs": {
+      "approval_id": "x"
+    },
+    "reason": "test",
+    "status": "held",
+    "created_at": "2026-04-30T02:04:11.041877",
+    "hold_until": 1777498451.042598
+  },
+  {
+    "id": "55f6ea85",
+    "skill": "outreach",
+    "operation": "send_approved",
+    "kwargs": {},
+    "reason": "test2",
+    "status": "rejected",
+    "created_at": "2026-04-30T02:04:11.042910",
+    "rejected_at": "2026-04-30T02:04:11.043124"
+  },
+  {
+    "id": "c9e7d1bd",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "approve-test",
+    "status": "executed",
+    "created_at": "2026-04-30T02:04:11.043323",
+    "approved_at": "2026-04-30T02:04:11.043507",
+    "result": {
+      "ok": true,
+      "data": {
+        "disk_pct_used": 89.1,
+        "disk_free_gb": 26.7,
+        "disk_ok": true,
+        "memory_file_exists": true,
+        "memory_file_kb": 153,
+        "memory_file_ok": true,
+        "ollama_up": true,
+        "python_version": "3.13.2"
+      },
+      "error": null,
+      "artifacts": [],
+      "followup": []
+    }
+  },
+  {
+    "id": "dab4f039",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test",
+    "status": "executed",
+    "created_at": "2026-04-30T02:04:11.088656",
+    "approved_at": "2026-04-30T02:04:11.088907",
+    "result": {
+      "ok": true,
+      "data": {
+        "disk_pct_used": 89.1,
+        "disk_free_gb": 26.7,
+        "disk_ok": true,
+        "memory_file_exists": true,
+        "memory_file_kb": 153,
+        "memory_file_ok": true,
+        "ollama_up": true,
+        "python_version": "3.13.2"
+      },
+      "error": null,
+      "artifacts": [],
+      "followup": []
+    }
+  },
+  {
+    "id": "334d3aff",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test-no",
+    "status": "rejected",
+    "created_at": "2026-04-30T02:04:11.092482",
+    "rejected_at": "2026-04-30T02:04:11.092689"
+  },
+  {
+    "id": "0627c2d1",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test-hold",
+    "status": "held",
+    "created_at": "2026-04-30T02:04:11.092894",
+    "hold_until": 1777498451.093093
+  },
+  {
+    "id": "1598af5c",
+    "skill": "outreach",
+    "operation": "send_approved",
+    "kwargs": {
+      "approval_id": "x"
+    },
+    "reason": "test",
+    "status": "held",
+    "created_at": "2026-04-30T02:05:17.043804",
+    "hold_until": 1777498517.044141
+  },
+  {
+    "id": "46588506",
+    "skill": "outreach",
+    "operation": "send_approved",
+    "kwargs": {},
+    "reason": "test2",
+    "status": "rejected",
+    "created_at": "2026-04-30T02:05:17.044438",
+    "rejected_at": "2026-04-30T02:05:17.044650"
+  },
+  {
+    "id": "96ba9050",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "approve-test",
+    "status": "executed",
+    "created_at": "2026-04-30T02:05:17.044862",
+    "approved_at": "2026-04-30T02:05:17.045095",
+    "result": {
+      "ok": true,
+      "data": {
+        "disk_pct_used": 89.1,
+        "disk_free_gb": 26.69,
+        "disk_ok": true,
+        "memory_file_exists": true,
+        "memory_file_kb": 153,
+        "memory_file_ok": true,
+        "ollama_up": true,
+        "python_version": "3.13.2"
+      },
+      "error": null,
+      "artifacts": [],
+      "followup": []
+    }
+  },
+  {
+    "id": "44cb0c59",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test",
+    "status": "executed",
+    "created_at": "2026-04-30T02:05:17.083973",
+    "approved_at": "2026-04-30T02:05:17.084244",
+    "result": {
+      "ok": true,
+      "data": {
+        "disk_pct_used": 89.1,
+        "disk_free_gb": 26.69,
+        "disk_ok": true,
+        "memory_file_exists": true,
+        "memory_file_kb": 154,
+        "memory_file_ok": true,
+        "ollama_up": true,
+        "python_version": "3.13.2"
+      },
+      "error": null,
+      "artifacts": [],
+      "followup": []
+    }
+  },
+  {
+    "id": "77073267",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test-no",
+    "status": "rejected",
+    "created_at": "2026-04-30T02:05:17.087631",
+    "rejected_at": "2026-04-30T02:05:17.087882"
+  },
+  {
+    "id": "214b7691",
+    "skill": "system",
+    "operation": "health_check",
+    "kwargs": {},
+    "reason": "tg-test-hold",
+    "status": "held",
+    "created_at": "2026-04-30T02:05:17.088119",
+    "hold_until": 1777498517.088488
+  }
+]

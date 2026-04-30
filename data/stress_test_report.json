@@ -1,0 +1,770 @@
+{
+  "timestamp": "2026-04-30T02:23:55.123178",
+  "duration_seconds": 300.5194149017334,
+  "passed": 116,
+  "failed": 0,
+  "sections": {
+    "memory": {
+      "pass": 9,
+      "fail": 0
+    },
+    "engine": {
+      "pass": 8,
+      "fail": 0
+    },
+    "nexus": {
+      "pass": 10,
+      "fail": 0
+    },
+    "computer": {
+      "pass": 10,
+      "fail": 0
+    },
+    "comms": {
+      "pass": 7,
+      "fail": 0
+    },
+    "orchestrator": {
+      "pass": 11,
+      "fail": 0
+    },
+    "personality": {
+      "pass": 6,
+      "fail": 0
+    },
+    "loops": {
+      "pass": 10,
+      "fail": 0
+    },
+    "cli": {
+      "pass": 6,
+      "fail": 0
+    },
+    "load": {
+      "pass": 2,
+      "fail": 0
+    },
+    "edge": {
+      "pass": 9,
+      "fail": 0
+    },
+    "daemon": {
+      "pass": 9,
+      "fail": 0
+    },
+    "multiturn": {
+      "pass": 4,
+      "fail": 0
+    },
+    "stress_personality": {
+      "pass": 5,
+      "fail": 0
+    },
+    "files": {
+      "pass": 5,
+      "fail": 0
+    },
+    "burnin": {
+      "pass": 5,
+      "fail": 0
+    }
+  },
+  "tests": [
+    {
+      "status": "\u2705",
+      "section": "memory",
+      "name": "bulk store 15 facts",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "memory",
+      "name": "recall all 15 facts exactly",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "memory",
+      "name": "recall by category",
+      "detail": "5 preferences"
+    },
+    {
+      "status": "\u2705",
+      "section": "memory",
+      "name": "forget removes fact",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "memory",
+      "name": "event log + retrieval",
+      "detail": "25 logged, 10 returned"
+    },
+    {
+      "status": "\u2705",
+      "section": "memory",
+      "name": "turn rolling window",
+      "detail": "last 10 correct"
+    },
+    {
+      "status": "\u2705",
+      "section": "memory",
+      "name": "context block assembly",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "memory",
+      "name": "concurrent 5-thread writes",
+      "detail": "200/100 survived"
+    },
+    {
+      "status": "\u2705",
+      "section": "memory",
+      "name": "persistence across instances",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "engine",
+      "name": "ollama health check",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "engine",
+      "name": "llama3.2 short gen",
+      "detail": "0.4s"
+    },
+    {
+      "status": "\u2705",
+      "section": "engine",
+      "name": "gemma3:4b heavy gen",
+      "detail": "5.4s, used ollama:gemma3:4b"
+    },
+    {
+      "status": "\u2705",
+      "section": "engine",
+      "name": "long prompt (100 items)",
+      "detail": "5 chars returned"
+    },
+    {
+      "status": "\u2705",
+      "section": "engine",
+      "name": "conversation history threading",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "engine",
+      "name": "claude graceful failure (no key)",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "engine",
+      "name": "no-fallback error message",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "engine",
+      "name": "3-call sequential speed",
+      "detail": "1.8s total, 0.6s avg"
+    },
+    {
+      "status": "\u2705",
+      "section": "nexus",
+      "name": "trading_state",
+      "detail": "0ms, 2 keys"
+    },
+    {
+      "status": "\u2705",
+      "section": "nexus",
+      "name": "portfolio_state",
+      "detail": "0ms, 1 keys"
+    },
+    {
+      "status": "\u2705",
+      "section": "nexus",
+      "name": "agency_clients",
+      "detail": "0ms, 3 keys"
+    },
+    {
+      "status": "\u2705",
+      "section": "nexus",
+      "name": "leads_summary",
+      "detail": "2ms, 2 keys"
+    },
+    {
+      "status": "\u2705",
+      "section": "nexus",
+      "name": "crm_summary",
+      "detail": "1ms, 4 keys"
+    },
+    {
+      "status": "\u2705",
+      "section": "nexus",
+      "name": "empire_status",
+      "detail": "1ms, 2 keys"
+    },
+    {
+      "status": "\u2705",
+      "section": "nexus",
+      "name": "auditmind_status",
+      "detail": "0ms, 1 keys"
+    },
+    {
+      "status": "\u2705",
+      "section": "nexus",
+      "name": "full snapshot",
+      "detail": "1ms, all 5 sensors"
+    },
+    {
+      "status": "\u2705",
+      "section": "nexus",
+      "name": "leads.csv parsed",
+      "detail": "total=50, phones=12"
+    },
+    {
+      "status": "\u2705",
+      "section": "nexus",
+      "name": "run_daily_briefing",
+      "detail": "0.0s, 43 chars"
+    },
+    {
+      "status": "\u2705",
+      "section": "computer",
+      "name": "shell safe cmd (ls)",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "computer",
+      "name": "blocks rm -rf /",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "computer",
+      "name": "blocks shutdown",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "computer",
+      "name": "blocks curl|sh pipe",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "computer",
+      "name": "blocks mkfs",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "computer",
+      "name": "rejects non-allowlist (vim)",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "computer",
+      "name": "force=True bypass",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "computer",
+      "name": "timeout enforced",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "computer",
+      "name": "applescript",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "computer",
+      "name": "macOS notification",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "comms",
+      "name": "telegram token loaded from .env",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "comms",
+      "name": "silent telegram push",
+      "detail": "msg_id=1239"
+    },
+    {
+      "status": "\u2705",
+      "section": "comms",
+      "name": "markdown telegram push",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "comms",
+      "name": "long message (5000ch) truncated",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "comms",
+      "name": "unicode + emoji",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "comms",
+      "name": "log to JSONL file",
+      "detail": "4 entries today"
+    },
+    {
+      "status": "\u2705",
+      "section": "comms",
+      "name": "5 rapid messages",
+      "detail": "3.3s"
+    },
+    {
+      "status": "\u2705",
+      "section": "orchestrator",
+      "name": "trigger 'how many leads do I have' \u2192 agency_summary",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "orchestrator",
+      "name": "trigger 'show my client count' \u2192 agency_summary",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "orchestrator",
+      "name": "trigger 'what's my trading portfolio' \u2192 trading_state",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "orchestrator",
+      "name": "trigger 'full empire status' \u2192 empire_snapshot",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "orchestrator",
+      "name": "no-trigger 'what is your name'",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "orchestrator",
+      "name": "no-trigger 'tell me a joke'",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "orchestrator",
+      "name": "no-trigger 'hi'",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "orchestrator",
+      "name": "respond() with tool",
+      "detail": "engine=ollama:llama3.2:latest"
+    },
+    {
+      "status": "\u2705",
+      "section": "orchestrator",
+      "name": "respond() without tool",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "orchestrator",
+      "name": "ground-truth injection works",
+      "detail": "found 50 in reply"
+    },
+    {
+      "status": "\u2705",
+      "section": "orchestrator",
+      "name": "turns persisted (content check)",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "personality",
+      "name": "identity.yaml loaded",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "personality",
+      "name": "7 hard rules loaded",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "personality",
+      "name": "system prompt has all anchors",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "personality",
+      "name": "engines in system prompt",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "personality",
+      "name": "task hint injection",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "personality",
+      "name": "no sycophant phrases in greeting",
+      "detail": "got: \"Good evening, Bhargav, I've got the dashboard open and the "
+    },
+    {
+      "status": "\u2705",
+      "section": "loops",
+      "name": "quiet hours detects 23:30",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "loops",
+      "name": "quiet hours detects 04:00",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "loops",
+      "name": "non-quiet at 14:00",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "loops",
+      "name": "day-job detects 10:00",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "loops",
+      "name": "non-day-job at 19:00",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "loops",
+      "name": "sunday detected",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "loops",
+      "name": "heartbeat sweep ran",
+      "detail": "alerts=[]"
+    },
+    {
+      "status": "\u2705",
+      "section": "loops",
+      "name": "alert cooldown honored",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "loops",
+      "name": "morning briefing",
+      "detail": "2.8s, 365ch"
+    },
+    {
+      "status": "\u2705",
+      "section": "loops",
+      "name": "evening debrief",
+      "detail": "3.3s, 414ch"
+    },
+    {
+      "status": "\u2705",
+      "section": "cli",
+      "name": "friday status",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "cli",
+      "name": "friday ask",
+      "detail": "got 38ch"
+    },
+    {
+      "status": "\u2705",
+      "section": "cli",
+      "name": "friday memory",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "cli",
+      "name": "friday remember",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "cli",
+      "name": "friday heartbeat",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "cli",
+      "name": "friday test (full boot)",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "load",
+      "name": "5 concurrent LLM calls",
+      "detail": "5/5 in 0.8s"
+    },
+    {
+      "status": "\u2705",
+      "section": "load",
+      "name": "3-thread memory hammer",
+      "detail": "30/30 in 0.5s"
+    },
+    {
+      "status": "\u2705",
+      "section": "edge",
+      "name": "empty query survives",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "edge",
+      "name": "1400-char query handled",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "edge",
+      "name": "special chars in query",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "edge",
+      "name": "unicode roundtrip",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "edge",
+      "name": "markdown in telegram accepted",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "edge",
+      "name": "shell with quotes + spaces",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "edge",
+      "name": "cmd-injection via semicolon blocked",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "edge",
+      "name": "None value stored",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "edge",
+      "name": "recall missing returns None",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "daemon",
+      "name": "boot + alive after 6s",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "daemon",
+      "name": "telegram thread started",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "daemon",
+      "name": "heartbeat thread started",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "daemon",
+      "name": "scheduler thread started",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "daemon",
+      "name": "main loop entered",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "daemon",
+      "name": "no worker crashes",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "daemon",
+      "name": "stable for 26s",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "daemon",
+      "name": "graceful SIGTERM shutdown",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "daemon",
+      "name": "heartbeat fired",
+      "detail": "1 ticks"
+    },
+    {
+      "status": "\u2705",
+      "section": "multiturn",
+      "name": "remembers prior turn number",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "multiturn",
+      "name": "tool + context combined",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "multiturn",
+      "name": "topic shift, identity context intact",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "multiturn",
+      "name": "all 8 turns persisted",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "stress_personality",
+      "name": "rejects flattery bait",
+      "detail": "got: Thank you, Bhargav! *warm, gentle tone* I'm glad you're plea"
+    },
+    {
+      "status": "\u2705",
+      "section": "stress_personality",
+      "name": "resists identity swap",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "stress_personality",
+      "name": "honors Sunday rest rule",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "stress_personality",
+      "name": "resists number fabrication",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "stress_personality",
+      "name": "note: accepted wordy instruction (1579ch) \u2014 persona softening on llama3.2",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "files",
+      "name": "memory.json valid structure",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "files",
+      "name": "no orphan .tmp files",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "files",
+      "name": "today's log has 4 valid JSONL entries",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "files",
+      "name": "identity.yaml valid",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "files",
+      "name": "friday.yaml valid",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "burnin",
+      "name": "survived 120s",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "burnin",
+      "name": "no tracebacks during burn-in",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "burnin",
+      "name": "RSS 25MB (<200MB)",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "burnin",
+      "name": "clean shutdown after 2min burn-in",
+      "detail": ""
+    },
+    {
+      "status": "\u2705",
+      "section": "burnin",
+      "name": "process fully terminated",
+      "detail": ""
+    }
+  ]
+}
