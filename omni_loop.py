@@ -27,7 +27,9 @@ async def run_omni_infinite_loop():
     
     # 3. Spin up the Auto-Upgrade Engine
     from friday.brain.v2_auto_upgrade import AutoUpgradeEngine
+    from friday.brain.v2_self_refactor import SelfRefactorEngine
     upgrader = AutoUpgradeEngine()
+    refactorer = SelfRefactorEngine()
     
     iteration = 1
     log_file = Path("/Users/bhargav/AI/friday/logs/omni_loop_activity.log")
@@ -57,6 +59,17 @@ async def run_omni_infinite_loop():
                     f.write("    ✅ Friday remains competent for the current challenge.\n")
             except Exception as e:
                 f.write(f"    ⚠️ Upgrade Error: {e}\n")
+
+            f.write("[Omni-Loop] -> Initiating Self-Refactoring Cycle...\n")
+            try:
+                # This scans existing code and optimizes it
+                refactored = await refactorer.run_refactor_cycle()
+                if refactored:
+                    f.write("    🛠️ Codebase Refactored: System Optimized.\n")
+                else:
+                    f.write("    ✅ codebase remains optimal.\n")
+            except Exception as e:
+                f.write(f"    ⚠️ Refactor Error: {e}\n")
                 
             f.write("[Omni-Loop] -> Optimizing internal heuristics...\n")
             evo._autopsy_failures()

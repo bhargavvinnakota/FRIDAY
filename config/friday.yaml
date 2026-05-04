@@ -21,8 +21,8 @@ autonomy:
 # ---------------- Engine Routing ----------------
 engines:
   default: ollama                    # free, local, fast
-  fallback: claude                   # when ollama fails or complexity demands it
-  escalation_triggers:               # route to claude if query matches
+  fallback: gemini                   # when ollama fails or complexity demands it
+  escalation_triggers:               # route to gemini if query matches
     - "code"
     - "complex"
     - "research"
@@ -36,12 +36,11 @@ engines:
     context_window: 128000
     temperature: 0.4
 
-  claude:
-    model: "claude-sonnet-4-6"        # current latest non-opus
-    model_heavy: "claude-opus-4-7"    # for strategic questions
-    max_tokens: 2000
+  gemini:
+    model: "gemini-2.0-flash"        # ultra-fast, high-intelligence
+    model_heavy: "gemini-2.0-pro-exp-02-05"    # for strategic questions
     temperature: 0.5
-    # API key picked up from env: ANTHROPIC_API_KEY
+    # API key picked up from env: GEMINI_API_KEY
 
 # ---------------- Memory ----------------
 memory:

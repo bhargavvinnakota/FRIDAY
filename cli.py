@@ -309,6 +309,28 @@ def cmd_journal(args):
     print(json.dumps(r.to_dict(), indent=2, default=str))
 
 
+def cmd_voice(args):
+    """Launches the voice sensing loop."""
+    import subprocess
+    script = "voice_core.py" if args.core else "voice_live.py"
+    script_path = FRIDAY_ROOT / "senses" / script
+    
+    if not script_path.exists():
+        print(f"✗ Error: {script} not found at {script_path}")
+        return
+
+    print(f"🎙️ Launching Friday Voice ({script})...")
+    try:
+        # Use sys.executable to ensure we use the same python environment
+        subprocess.run([sys.executable, str(script_path)], check=True)
+    except KeyboardInterrupt:
+        print("\nVoice mode stopped.")
+    except subprocess.CalledProcessError as e:
+        print(f"\n✗ Error: Voice loop exited with code {e.returncode}")
+    except Exception as e:
+        print(f"\n✗ Unexpected error: {e}")
+
+
 def cmd_build(args):
     from friday.brain.engine import MultiEngine
     from friday.brain.memory import Memory
@@ -382,6 +404,10 @@ def main():
     f.set_defaults(func=cmd_forget)
 
     sub.add_parser("test", help="smoke test all components").set_defaults(func=cmd_test)
+
+    v = sub.add_parser("voice", help="launch voice mode")
+    v.add_argument("--core", action="store_true", help="use legendary voice-core (RAM-only)")
+    v.set_defaults(func=lambda args: cmd_voice(args))
 
     # -------- v1.0 autonomy --------
     sub.add_parser("autonomy", help="autonomy engine status").set_defaults(func=cmd_autonomy)

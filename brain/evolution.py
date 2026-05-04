@@ -207,7 +207,7 @@ class EvolutionEngine:
                 "Be specific, technical, and operator-focused."
             )
             
-            force = "claude" if self.engine.claude.api_key else None
+            force = "gemini" if os.environ.get("GEMINI_API_KEY") else None
             try:
                 heuristic, _ = self.engine.ask(sys_prompt, "Write the heuristic now.", force=force, heavy=True)
                 if heuristic and len(heuristic) > 10:

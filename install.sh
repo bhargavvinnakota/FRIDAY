@@ -5,7 +5,7 @@
 # ============================================================
 set -e
 
-FRIDAY_HOME="$HOME/friday"
+FRIDAY_HOME="$HOME/AI/friday"
 cd "$FRIDAY_HOME"
 
 echo "╔══════════════════════════════════════╗"
@@ -33,8 +33,8 @@ chmod +x "$FRIDAY_HOME/cli.py"
 chmod +x "$FRIDAY_HOME/daemon.py"
 
 # 4. Add `friday` alias
-ALIAS_LINE="alias friday='python3 $FRIDAY_HOME/cli.py'"
-for rc in ~/.zshrc ~/.bashrc; do
+ALIAS_LINE="alias friday='$FRIDAY_HOME/venv/bin/python3 $FRIDAY_HOME/cli.py'"
+for rc in ~/.zshrc ~/.bashrc ~/.bash_profile; do
     if [ -f "$rc" ]; then
         if ! grep -q "alias friday=" "$rc"; then
             echo "" >> "$rc"

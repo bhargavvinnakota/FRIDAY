@@ -1,5 +1,0 @@
-{"ts": "2026-04-21T00:48:16.052251", "channel": "telegram_in", "text": "{\"q\": \"Hi friday\", \"r\": \"Ship it.\", \"engine\": \"ollama:llama3.2:latest\", \"tool\": null}"}
-{"ts": "2026-04-21T00:48:45.347023", "channel": "telegram_in", "text": "{\"q\": \"What is happening around the world\", \"r\": \"No data.\", \"engine\": \"ollama:llama3.2:latest\", \"tool\": null}"}
-{"ts": "2026-04-21T00:54:36.851630", "channel": "telegram_in", "text": "{\"q\": \"Hi\", \"r\": \"Ship it.\", \"engine\": \"ollama:llama3.2:latest\", \"tool\": null}"}
-{"ts": "2026-04-21T00:54:58.679560", "channel": "telegram_in", "text": "{\"q\": \"What do you mean by ship it\", \"r\": \"Ship it means execute the tasks outlined in week1_target. Send 100 outreach, close 1 client, and post 3x LinkedIn.\", \"engine\": \"ollama:llama3.2:latest\", \"tool\": null}"}
-{"ts": "2026-04-21T22:04:00.185297", "channel": "evening", "text": "*\ud83c\udf19 Friday :: Debrief*\n\n22:00. Tuesday, 21 Apr 2026.\n\n1. Grind.\n2. \u20b915K setup banked.\n3. Send a follow-up email to the one lead from last week's outreach (60 minutes).\n4. `python3 ~/agency/content/weekly_scorecard.py add`"}

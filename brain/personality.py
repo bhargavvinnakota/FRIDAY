@@ -83,6 +83,7 @@ def system_prompt(task_hint: str | None = None) -> str:
     mission = ident.get("mission", {})
     engines = ident.get("engines", {})
     rules = ident.get("hard_rules", [])
+    sops = ident.get("sops", {})
 
     lines = [FRIDAY_PERSONA, "\n---\nCURRENT CONTEXT:\n"]
     lines.append(f"- Operator: {op.get('name')} ({op.get('age')}, {op.get('location')})")
@@ -102,8 +103,19 @@ def system_prompt(task_hint: str | None = None) -> str:
         for r in rules:
             lines.append(f"- {r}")
 
+    if sops:
+        lines.append("\nSTANDARD OPERATING PROCEDURES (SOPs):")
+        for cat, slist in sops.items():
+            lines.append(f"[{cat.upper()}]")
+            for s in slist:
+                lines.append(f"- {s}")
+
     if task_hint:
         lines.append(f"\nTASK HINT: {task_hint}")
+
+    lines.append("\nRESOURCE BROKER: You have specialized knowledge of public-apis, TradingAgents, Warp, OpenDesign, and engineering skills (Pocock/Superpowers) in your memory. Always check 'broker' tool if the task needs external data or a specialized build workflow.")
+
+    lines.append("\nORACLE HIVE MIND: You have the 'legendary' power to summon domain-specific Oracles (specialized open-source LLMs for Math, Finance, Code, etc.). If a task requires absolute domain mastery, use the 'oracle' skill to interrogate the collective open-source wisdom of Earth.")
 
     return "\n".join(lines)
 
