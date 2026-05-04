@@ -476,9 +476,9 @@ Only output the JSON. No other text."""
         # ENGINE PICK
         #   - explicit force wins
         #   - tool query → ollama (synthesize ground-truth, cheap + reliable)
-        #   - conversational or heavy → claude if available (personality needs it)
+        #   - conversational or heavy → openrouter if available
         conversational = _is_conversational(user_query) and not tool_used
-        claude_available = bool(self.engine.claude.api_key)
+        openrouter_available = hasattr(self.engine, 'openrouter') and self.engine.openrouter is not None
 
         # Force heavy for vision to prevent hallucination by text-only models
         if images and not heavy:
@@ -488,10 +488,9 @@ Only output the JSON. No other text."""
         if not force:
             if tool_used:
                 force = "ollama"  # data summarization, stick local
-            elif (heavy or conversational or images) and claude_available:
-                # Use Claude for vision if possible, or escalation
-                force = "claude"
-            # else: auto-route via MultiEngine default (ollama first)
+            elif (heavy or conversational or images) and openrouter_available:
+                force = "openrouter"
+            # else: auto-route via MultiEngine default
 
         # Higher temp for conversation, lower for tool synthesis
         temperature = None
@@ -500,20 +499,14 @@ Only output the JSON. No other text."""
         elif not tool_used:
             temperature = 0.7
 
-        # Inject temperature via engine's internal path
-        original_ollama_temp = self.engine.ollama.temperature
-        original_claude_temp = self.engine.claude.temperature
-        if temperature is not None:
-            self.engine.ollama.temperature = temperature
-            self.engine.claude.temperature = temperature
-
         try:
             reply, engine_used = self.engine.ask(
-                sys, full_prompt, history=history, force=force, heavy=heavy, images=images
+                sys, full_prompt, history=history, force=force, heavy=heavy, images=images, temperature=temperature
             )
-        finally:
-            self.engine.ollama.temperature = original_ollama_temp
-            self.engine.claude.temperature = original_claude_temp
+        except Exception as e:
+            # Emergency fallback if all engines fail
+            reply = f"System Error: {e}"
+            engine_used = "fail"
 
         # Post-scrub
         reply = scrub_reply(reply)

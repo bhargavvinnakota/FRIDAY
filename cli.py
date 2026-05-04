@@ -375,6 +375,31 @@ def cmd_build(args):
         print(f"Notes: {mission.notes}")
 
 
+def cmd_venture(args):
+    from friday.brain.agents.venture import VentureOrchestrator
+    objective = " ".join(args.objective)
+    orch = VentureOrchestrator(objective)
+    orch.run()
+
+def cmd_distill(args):
+    from friday.skills.registry import get_registry
+    reg = get_registry()
+    res = reg.invoke("distillation", "export_dataset")
+    if res.ok:
+        print(f"✅ Distillation complete. Exported {res.data.get('exported_records')} records.")
+        print(f"   Dataset saved to: {res.data.get('file')}")
+    else:
+        print(f"❌ Distillation failed: {res.error}")
+
+def cmd_train(args):
+    import subprocess
+    script_path = FRIDAY_ROOT / "scripts" / "train_lora_mlx.py"
+    if not script_path.exists():
+        print(f"❌ Error: {script_path} not found.")
+        return
+    print(f"🚀 Launching MLX LoRA Training Pipeline...")
+    subprocess.run([sys.executable, str(script_path)])
+
 def main():
     p = argparse.ArgumentParser(prog="friday", description="F.R.I.D.A.Y. v1.0 — Bhargav's autonomous sovereign AI")
     sub = p.add_subparsers(dest="cmd")
@@ -446,6 +471,13 @@ def main():
     b = sub.add_parser("build", help="master builder - autonomously plan and build applications")
     b.add_argument("goal", nargs="+")
     b.set_defaults(func=cmd_build)
+
+    vnt = sub.add_parser("venture", help="run a multi-agent company orchestration loop")
+    vnt.add_argument("objective", nargs="+")
+    vnt.set_defaults(func=cmd_venture)
+
+    sub.add_parser("distill", help="export teacher actions to a dataset for fine-tuning").set_defaults(func=cmd_distill)
+    sub.add_parser("train", help="run MLX LoRA training on the latest distilled dataset").set_defaults(func=cmd_train)
 
     args = p.parse_args()
     if not hasattr(args, "func"):

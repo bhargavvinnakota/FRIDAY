@@ -85,15 +85,30 @@ class SelfRefactorSkill(Skill):
                     temp_file.unlink()
                     return SkillResult(ok=False, error=f"Generated code has syntax errors: {res.stderr.decode()}")
                 
-                # Validation Step 2: Dry Run (Optional/Basic)
-                # We won't execute but we've passed syntax.
-                
-                # Apply
-                full_path.write_text(new_code)
+                # Validation Step 2: Behavioral Check (Run Smoke Tests)
+                # We swap the file temporarily to run the project's own test suite.
+                print(f"[Self-Refactor] Running behavioral validation for {file_path}...")
+                original_content = full_path.read_text()
+                try:
+                    full_path.write_text(new_code)
+                    # Run 'friday test' via subprocess
+                    test_res = subprocess.run(["friday", "test"], capture_output=True, text=True)
+                    if test_res.returncode != 0:
+                        # Behavioral failure - revert immediately
+                        full_path.write_text(original_content)
+                        temp_file.unlink()
+                        return SkillResult(ok=False, error=f"Behavioral validation failed (friday test). Reverting. Output: {test_res.stdout[-500:]}")
+                    print(f"[Self-Refactor] Behavioral validation passed.")
+                except Exception as test_err:
+                    full_path.write_text(original_content)
+                    temp_file.unlink()
+                    return SkillResult(ok=False, error=f"Error during behavioral validation: {test_err}")
+
+                # Apply (already written in try block, but we finalize here)
                 temp_file.unlink()
                 
                 return SkillResult(ok=True, data={
-                    "message": "Optimization applied successfully.",
+                    "message": "Optimization applied and validated successfully.",
                     "backup": str(backup_path),
                     "engine_used": engine
                 })

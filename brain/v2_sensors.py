@@ -97,6 +97,122 @@ class TelegramSensor(BaseSensor):
                 
             await asyncio.sleep(self.interval)
 
+import subprocess
+from pathlib import Path
+from datetime import datetime
+
+class VisionSensor(BaseSensor):
+    """Monitors the screen for visual state changes using native macOS tools."""
+    def __init__(self, interval: float = 10.0, **kwargs):
+        super().__init__(name="Vision", interval=interval)
+        self.output_dir = Path(os.path.expanduser("~/AI/friday/data/vision"))
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+    async def watch(self, queue: asyncio.Queue):
+        print(f"👁️ Sensor {self.name}: Starting Screen Capture Loop.")
+        while self.active:
+            try:
+                # Capture screen to a temporary file
+                img_path = self.output_dir / "latest.png"
+                # -x: silent mode
+                res = await asyncio.to_thread(subprocess.run, ["screencapture", "-x", str(img_path)], capture_output=True)
+                
+                if res.returncode == 0:
+                    # For now, we just signal that a new frame is ready.
+                    # Future iterations will include CLIP or GPT-4o analysis here.
+                    await queue.put(Signal(self.name, {
+                        "path": str(img_path),
+                        "action": "captured"
+                    }, priority=1))
+                else:
+                    print(f"⚠️ VisionSensor Error: {res.stderr.decode()}")
+                    
+            except Exception as e:
+                print(f"⚠️ VisionSensor Exception: {e}")
+                
+            await asyncio.sleep(self.interval)
+
+class HeartbeatSensor(BaseSensor):
+    """Fires a signal every hour for system maintenance and alerts."""
+    def __init__(self, interval_minutes: int = 60, **kwargs):
+        super().__init__(name="Heartbeat", interval=interval_minutes * 60)
+
+    async def watch(self, queue: asyncio.Queue):
+        print(f"💓 Sensor {self.name}: Starting Heartbeat Loop ({self.interval/60}m).")
+        while self.active:
+            await queue.put(Signal(self.name, {"action": "sweep"}, priority=2))
+            await asyncio.sleep(self.interval)
+
+class SchedulerSensor(BaseSensor):
+    """Fires signals for morning (06:00) and evening (22:00) routines."""
+    def __init__(self, **kwargs):
+        super().__init__(name="Scheduler", interval=60.0)
+
+    async def watch(self, queue: asyncio.Queue):
+        print(f"⏰ Sensor {self.name}: Starting Scheduler Loop.")
+        last_morning = None
+        last_evening = None
+        while self.active:
+            now = datetime.now()
+            today = now.date()
+            if now.hour == 6 and now.minute < 10 and last_morning != today:
+                await queue.put(Signal(self.name, {"loop": "morning"}, priority=4))
+                last_morning = today
+            if now.hour == 22 and now.minute < 10 and last_evening != today:
+                await queue.put(Signal(self.name, {"loop": "evening"}, priority=4))
+                last_evening = today
+            await asyncio.sleep(self.interval)
+
+class LogSensor(BaseSensor):
+    """Streams the macOS Unified Log and filters for critical system signals."""
+    def __init__(self, predicate: str = "type == error OR type == fault", **kwargs):
+        super().__init__(name="LogStream", interval=0.1)
+        self.predicate = predicate
+
+    async def watch(self, queue: asyncio.Queue):
+        print(f"📜 Sensor {self.name}: Starting Native Log Stream.")
+        cmd = ["log", "stream", "--predicate", self.predicate, "--style", "ndjson"]
+        process = await asyncio.create_subprocess_exec(
+            *cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        
+        while self.active:
+            line = await process.stdout.readline()
+            if not line: break
+            try:
+                import json
+                event = json.loads(line.decode().strip())
+                await queue.put(Signal(self.source_name(event), {
+                    "message": event.get("eventMessage"),
+                    "process": event.get("processImagePath")
+                }, priority=2))
+            except: continue
+
+    def source_name(self, event):
+        proc = (event.get("processImagePath", "") or "Unknown").split("/")[-1]
+        return f"OS:{proc}"
+
+class NativeEventSensor(BaseSensor):
+    """Listens for native macOS events like app launches and system sleep."""
+    def __init__(self, **kwargs):
+        super().__init__(name="NativeEvents", interval=1.0)
+
+    async def watch(self, queue: asyncio.Queue):
+        print(f"🍎 Sensor {self.name}: Initializing Cocoa Event Listener.")
+        try:
+            from AppKit import NSWorkspace
+            ws = NSWorkspace.sharedWorkspace()
+            
+            last_app = ""
+            while self.active:
+                front_app = ws.frontmostApplication().localizedName()
+                if front_app != last_app:
+                    await queue.put(Signal("AppSwitch", {"app": front_app}, priority=3))
+                    last_app = front_app
+                await asyncio.sleep(self.interval)
+        except Exception as e:
+            print(f"⚠️ NativeEventSensor Error: {e}")
+
 class SensorSuite:
     def __init__(self):
         self.sensors = []

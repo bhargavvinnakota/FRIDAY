@@ -202,7 +202,7 @@ def get_registry() -> SkillRegistry:
             
             # 1. Load built-ins first for stability
             # (Keeping explicit imports for core skills to avoid circular dependencies)
-            from . import system, watchdog, outreach, content, research, journal, briefing, intelligence, computer, empire, builder, swarm, broker, oracle, mac, omni_learner, self_refactor
+            from . import system, watchdog, outreach, content, research, journal, briefing, intelligence, computer, empire, builder, swarm, broker, oracle, mac, omni_learner, self_refactor, vision, distillation, sys_research
             _REGISTRY.register(system.SystemSkill())
             _REGISTRY.register(watchdog.WatchdogSkill())
             _REGISTRY.register(outreach.OutreachSkill())
@@ -220,6 +220,9 @@ def get_registry() -> SkillRegistry:
             _REGISTRY.register(mac.MacSkill())
             _REGISTRY.register(omni_learner.OmniLearnerSkill())
             _REGISTRY.register(self_refactor.SelfRefactorSkill())
+            _REGISTRY.register(vision.VisionSkill())
+            _REGISTRY.register(distillation.DistillationSkill())
+            _REGISTRY.register(sys_research.SystemResearchSkill())
 
             # 2. Discover and load all 'auto_*' skills
             skills_dir = Path(__file__).parent

@@ -5,7 +5,7 @@ Deep system control via native Cocoa and Accessibility APIs.
 from __future__ import annotations
 import objc
 from AppKit import NSWorkspace, NSScreen
-from Accessibility import (
+from HIServices import (
     AXUIElementCreateApplication,
     AXUIElementCopyAttributeValue,
     AXUIElementPerformAction,

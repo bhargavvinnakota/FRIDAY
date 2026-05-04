@@ -8,6 +8,7 @@ import numpy as np
 from pathlib import Path
 from datetime import datetime
 from sentence_transformers import SentenceTransformer
+from .memory import Memory as LegacyMemory
 
 FRIDAY_ROOT = Path(os.path.expanduser("~/AI/friday"))
 DB_PATH = FRIDAY_ROOT / "data" / "lancedb"
@@ -17,6 +18,7 @@ class VectorMemory:
     def __init__(self, model_name="all-MiniLM-L6-v2"):
         self.db = lancedb.connect(str(DB_PATH))
         self.model = SentenceTransformer(model_name)
+        self.legacy = LegacyMemory()
         
         if "memories" not in self.db.table_names():
             # Create schema without dummy data
@@ -46,6 +48,31 @@ class VectorMemory:
         results = self.table.search(query_vec).limit(limit).to_list()
         # Clean output
         return [{"text": r["text"], "category": r["category"], "ts": r["ts"]} for r in results]
+
+    # --- Compatibility Layer ---
+    def add(self, text: str, category: str = "general"):
+        """Alias for remember to support v2.5 syntax."""
+        self.remember(text, category)
+
+    def update_profile(self, trait: str, value: str):
+        """PIM: Update the user's personal profile and preferences."""
+        self.legacy.remember(trait, value, category="profile")
+        # Also embed it for semantic recall
+        self.remember(f"Profile trait - {trait}: {value}", category="profile")
+
+    def add_timeline_event(self, title: str, details: dict):
+        """PIM: Add a narrative event to the timeline store."""
+        self.legacy.log_event("timeline", {"title": title, "details": details})
+        # Embed the core of the event for semantic search
+        self.remember(f"Timeline Event - {title}: {details}", category="timeline")
+
+    def log_event(self, event_type: str, data: dict, max_events: int = 1000):
+        """Pass-through to legacy JSON event log."""
+        self.legacy.log_event(event_type, data, max_events)
+
+    def recent_events(self, n: int = 20, event_type: str | None = None) -> list[dict]:
+        """Pass-through to legacy JSON event log."""
+        return self.legacy.recent_events(n, event_type)
 
     def clear(self):
         """Wipe the table."""

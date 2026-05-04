@@ -16,6 +16,7 @@ from friday.brain.engine import MultiEngine
 from friday.brain.orchestrator import Orchestrator
 from friday.brain.memory import Memory
 from friday.skills import get_registry
+from friday.brain.state_relay import update_hud_state
 
 class SelfRefactorEngine:
     def __init__(self):
@@ -26,6 +27,7 @@ class SelfRefactorEngine:
 
     async def run_refactor_cycle(self):
         print("[Self-Refactor] Initiating code analysis cycle...")
+        update_hud_state(status="REFACTORING", friday_output="Analyzing source for debt...")
         
         # 1. List all source files
         reg = get_registry()
@@ -52,9 +54,11 @@ class SelfRefactorEngine:
         
         # 3. Scan for debt
         print(f"[Self-Refactor] Scanning {target_file} for debt...")
+        update_hud_state(status="REFACTORING", friday_output=f"Scanning {target_file}...")
         res_scan = await asyncio.to_thread(refactor_skill.invoke, "scan_for_debt", file_path=target_file)
         if not res_scan.ok:
             print(f"[Self-Refactor] ❌ Scan failed: {res_scan.error}")
+            update_hud_state(status="IDLE", friday_output=f"Scan failed: {target_file}")
             return False
             
         analysis = res_scan.data.get("analysis", "")
@@ -63,6 +67,10 @@ class SelfRefactorEngine:
         # 4. Decide if optimization is worth it (Heuristic)
         # For now, we always try to optimize if debt is found.
         print(f"[Self-Refactor] Generating optimization for {target_file}...")
+        update_hud_state(status="REFACTORING", 
+                         friday_output=f"Optimizing {target_file}...",
+                         telemetry={"activity": "code_gen", "target": target_file})
+        
         res_opt = await asyncio.to_thread(refactor_skill.invoke, 
                                           "apply_optimization", 
                                           file_path=target_file, 
@@ -70,10 +78,12 @@ class SelfRefactorEngine:
                                           
         if res_opt.ok:
             print(f"✅ [Self-Refactor] Successfully optimized {target_file}.")
+            update_hud_state(status="IDLE", friday_output=f"Optimization complete: {target_file}")
             print(f"    -> Backup created at: {res_opt.data.get('backup')}")
             return True
         else:
             print(f"❌ [Self-Refactor] Optimization failed for {target_file}: {res_opt.error}")
+            update_hud_state(status="IDLE", friday_output=f"Refactor failed: {target_file}")
             return False
 
 if __name__ == "__main__":

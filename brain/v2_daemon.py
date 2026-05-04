@@ -57,6 +57,74 @@ class OmniDaemon:
                 comms.telegram_push(error_msg, chat_id=chat_id)
             return
 
+        if sig.source == "Vision":
+            path = sig.data.get("path")
+            print(f"   👁️ Vision Signal: Analyzing {path}...")
+            try:
+                # Trigger a vision analysis
+                vision_skill = self.skills.get("vision")
+                if vision_skill:
+                    res = await asyncio.to_thread(vision_skill.invoke, "analyze_frame", path=path)
+                    if res.ok:
+                        analysis = res.data.get("analysis", "")
+                        print(f"   ✅ Screen Analysis: {analysis[:100]}...")
+                        # Store in memory
+                        self.memory.add(f"Visual context at {sig.ts}: {analysis}")
+                        # Update HUD
+                        from .state_relay import update_hud_state
+                        update_hud_state(status="ACTIVE", friday_output=f"Vision: {analysis[:50]}...")
+                    else:
+                        print(f"   ❌ Vision Analysis Failed: {res.error}")
+            except Exception as e:
+                print(f"   ⚠️ Vision Processing Error: {e}")
+            return
+
+        if sig.source == "Heartbeat":
+            print(f"   💓 Heartbeat Signal: Running system sweep...")
+            try:
+                from friday.loops.heartbeat import sweep
+                await asyncio.to_thread(sweep, self.memory)
+            except Exception as e:
+                print(f"   ⚠️ Heartbeat Error: {e}")
+            return
+
+        if sig.source == "Scheduler":
+            loop_type = sig.data.get("loop")
+            print(f"   ⏰ Scheduler Signal: Running {loop_type} loop...")
+            try:
+                if loop_type == "morning":
+                    from friday.loops.morning import run as run_morning
+                    await asyncio.to_thread(run_morning)
+                elif loop_type == "evening":
+                    from friday.loops.evening import run as run_evening
+                    await asyncio.to_thread(run_evening)
+            except Exception as e:
+                print(f"   ⚠️ Scheduler Error: {e}")
+            return
+
+        if sig.source == "RestartWatcher":
+            print("🔁 Restart requested via signal. Shutting down OmniDaemon...")
+            await self.shutdown()
+            # Remove the marker file
+            try:
+                Path("/Users/bhargav/AI/friday/data/restart.requested").unlink(missing_ok=True)
+            except: pass
+            return
+
+        if sig.source == "AppSwitch":
+            app = sig.data.get("app")
+            print(f"   🍎 OS Signal: User switched to {app}.")
+            self.memory.add(f"User switched active application to {app}.", category="os_event")
+            return
+
+        if sig.source.startswith("OS:"):
+            msg = sig.data.get("message")
+            print(f"   📜 OS Signal [{sig.source}]: {msg[:100]}...")
+            # We don't save every log message, only if it looks critical
+            if any(k in msg.lower() for k in ["fail", "crash", "error", "denied"]):
+                self.memory.add(f"System Log Alert from {sig.source}: {msg}", category="system_alert")
+            return
+
         # 1. Semantic Context Retrieval
         content = sig.data.get("content", "")
         print(f"   🔍 Signal Content: {content[:100]}...")
@@ -75,6 +143,25 @@ class OmniDaemon:
             # Configure Sensors
             logging.info("Initializing TelegramSensor...")
             self.sensors.add_sensor(TelegramSensor())
+            
+            logging.info("Initializing VisionSensor...")
+            from .v2_sensors import VisionSensor
+            self.sensors.add_sensor(VisionSensor(interval=15.0))
+
+            logging.info("Initializing Heartbeat and Scheduler Sensors...")
+            from .v2_sensors import HeartbeatSensor, SchedulerSensor, LogSensor, NativeEventSensor
+            self.sensors.add_sensor(HeartbeatSensor(interval_minutes=60))
+            self.sensors.add_sensor(SchedulerSensor())
+            self.sensors.add_sensor(LogSensor())
+            self.sensors.add_sensor(NativeEventSensor())
+
+            logging.info("Initializing RestartWatcher Sensor...")
+            self.sensors.add_sensor(FileSensor(
+                name="RestartWatcher",
+                path=Path("/Users/bhargav/AI/friday/data/restart.requested"),
+                trigger_phrase="", # Any change/existence triggers
+                interval=5.0
+            ))
             
             logging.info("Initializing FileSensor for TradingAlert...")
             self.sensors.add_sensor(FileSensor(
