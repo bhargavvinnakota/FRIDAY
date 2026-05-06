@@ -137,17 +137,21 @@ class MultiEngine:
         if force == "gemini":
             return self._ask_gemini_native(system, user, history, stream, temperature, images=images), "gemini"
 
-        # 2. Heavy Model Routing (Always Cloud)
-        if heavy:
-            if self.openrouter:
+        # 2. Priority Routing (Cloud First for Performance)
+        # We use OpenRouter (Gemini 2.0 Flash) as primary for 'God-Tier' speed/intelligence
+        if self.openrouter:
+            try:
                 return self._ask_openrouter(system, user, history, stream, temperature, images=images), "openrouter"
-            return self._ask_gemini_native(system, user, history, stream, temperature, images=images), "gemini"
+            except Exception as e:
+                print(f"Engine Warning: OpenRouter failed, falling back... ({e})")
 
-        # 3. Default Routing Policy (Zero-Waste)
-        # Images require Cloud (mostly)
-        if images:
-            if self.openrouter:
-                return self._ask_openrouter(system, user, history, stream, temperature, images=images), "openrouter"
+        # 3. Native Backup
+        try:
+            return self._ask_gemini_native(system, user, history, stream, temperature, images=images), "gemini"
+        except Exception as e:
+            if not self.ollama.health():
+                raise RuntimeWarning(f"All engines exhausted. Last error: {e}")
+            return self._ask_ollama(system, user, history, stream, temperature), "ollama"
             return self._ask_gemini_native(system, user, history, stream, temperature, images=images), "gemini"
 
         # Try local first if healthy
