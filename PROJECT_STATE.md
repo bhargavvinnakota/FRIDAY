@@ -3,17 +3,17 @@
 ## Vision
 A "legendary, sovereign AI" that transcends Jarvis. A background intelligence engine (Omni-Daemon) that autonomously manages the host system, executes complex R&D, and ensures financial sovereignty for the user. It should be "master of all skills" and have a "god-tier" Sci-Fi UI.
 
-## Current status (as of May 2, 2026)
+## Current status (as of May 4, 2026)
 - **Infrastructure:** Core files located in `~/AI/friday/`.
-- **Connectivity:** Integrated with Telegram (reporting active).
-- **Control:** Omni-Daemon protocol initiated. Rule set to non-interactive mode. **Self-Refactoring Engine v1.0 active.**
-- **UI:** **God-Tier "Sleek Evolution" UI active.** Real-time fluid orb, telemetry HUD, and audio visualizer.
-- **Memory:** Global logging of all user inputs active. **Knowledge Vault populated with 50+ curated Awesome resources.**
-- **Engine:** Upgraded to **google-genai v1.0** for modern Gemini support.
-- **Hardware:** Native macOS control with "flinch-speed" system telemetry and media management.
+- **MCP Integration:** **Model Context Protocol (MCP) active.** Standardized tool-use via `brain/mcp_manager.py`.
+- **Orchestration:** **Advanced Task-Routed Swarm active.** Complexity-based routing across Llama 4 Maverick, Qwen 3.6, and Gemini 2.0 Flash.
+- **Engine:** Upgraded to **google-genai v1.0** and **OpenRouter 2026 Model Catalog**.
+- **Research:** **Ground Research on Open Source AGI complete.** Located in `research/OPEN_SOURCE_AGI_2026.md`.
+- **UI:** God-Tier "Sleek Evolution" UI active.
+- **Hardware:** Native macOS control with Accessibility API bridging.
 
 ## Immediate Objectives (Next Phase)
 1. **Live Framebuffer Vision:** Transition from screenshots to real-time screen stream processing.
-2. **Financial Sovereignty:** Integrate trading nodes and market sentiment analysis via the knowledge vault.
-3. **Agentic Swarm Deployment:** Scale the Omni-Daemon to manage external compute nodes.
-4. **Neuromorphic Optimization:** Explore local execution on M-series Neural Engine for near-zero latency.
+2. **MCP Swarm Scaling:** Connect 5+ specialized MCP servers (GitHub, Slack, Trading, local DB).
+3. **Neuromorphic Optimization:** Near-zero latency execution on M-series Neural Engine.
+

@@ -74,8 +74,23 @@ class OpenRouterEngine:
         self.api_key = api_key
         self.model = model
         self.temperature = 0.7
+        
+        # 2026 Model Catalog for Advanced Orchestration
+        self.MODELS = {
+            "orchestrator": "meta-llama/llama-4-maverick",
+            "scout": "meta-llama/llama-4-scout",
+            "specialist": "alibaba/qwen-3.6-27b",
+            "coder": "alibaba/qwen-3.6-coder",
+            "researcher": "mistralai/mistral-small-4",
+            "flash": "google/gemini-2.0-flash-001",
+            "pro": "google/gemini-2.0-pro-001",
+        }
 
-    def generate(self, system: str, user: str, history: list[dict] | None = None, stream: bool = False) -> Any:
+    def generate(self, system: str, user: str, history: list[dict] | None = None, 
+                 stream: bool = False, model: str | None = None, temperature: float | None = None) -> Any:
+        # Resolve model alias or use default
+        target_model = self.MODELS.get(model, model or self.model)
+        
         messages = [{"role": "system", "content": system}]
         if history:
             for h in history:
@@ -85,10 +100,10 @@ class OpenRouterEngine:
         req = urllib.request.Request(
             "https://openrouter.ai/api/v1/chat/completions",
             data=json.dumps({
-                "model": self.model,
+                "model": target_model,
                 "messages": messages,
                 "stream": stream,
-                "temperature": self.temperature
+                "temperature": temperature or self.temperature
             }).encode(),
             headers={
                 "Authorization": f"Bearer {self.api_key}",
@@ -103,6 +118,8 @@ class OpenRouterEngine:
         
         with urllib.request.urlopen(req, timeout=30) as r:
             data = json.loads(r.read())
+            if "choices" not in data:
+                raise RuntimeError(f"OpenRouter Error: {data}")
             return data["choices"][0]["message"]["content"].strip()
 
 class MultiEngine:
@@ -124,11 +141,22 @@ class MultiEngine:
         if self._client is None and self.gemini_key and genai:
             self._client = genai.Client(api_key=self.gemini_key)
 
+    def _score_complexity(self, user: str) -> str:
+        """Route to the best model based on task signal."""
+        low = user.lower()
+        if any(k in low for k in ("build", "code", "terminal", "bash", "execute")):
+            return "specialist" # Qwen 3.6
+        if any(k in low for k in ("research", "latest", "briefing", "news")):
+            return "researcher" # Mistral Small 4
+        if any(k in low for k in ("plan", "strategy", "mission", "goal")):
+            return "orchestrator" # Llama 4 Maverick
+        return "flash" # Gemini 2.0 Flash (Default Performance)
+
     def ask(self, system: str, user: str, history: list[dict] | None = None, 
             stream: bool = False, force: str | None = None, heavy: bool = False, 
             images: list[str] | None = None, temperature: float | None = None) -> Any:
         
-        # 1. Handle Forced Engine
+        # 1. Handle Forced Engine (Legacy compatibility)
         if force == "ollama":
             return self._ask_ollama(system, user, history, stream, temperature), "ollama"
         if force in ("openrouter", "claude"):
@@ -137,15 +165,16 @@ class MultiEngine:
         if force == "gemini":
             return self._ask_gemini_native(system, user, history, stream, temperature, images=images), "gemini"
 
-        # 2. Priority Routing (Cloud First for Performance)
-        # We use OpenRouter (Gemini 2.0 Flash) as primary for 'God-Tier' speed/intelligence
+        # 2. Complexity-Based Routing (The Advanced Orchestration)
+        complexity = self._score_complexity(user)
         if self.openrouter:
             try:
-                return self._ask_openrouter(system, user, history, stream, temperature, images=images), "openrouter"
+                # Map complexity to specific model
+                return self.openrouter.generate(system, user, history, stream, model=complexity, temperature=temperature), f"openrouter:{complexity}"
             except Exception as e:
-                print(f"Engine Warning: OpenRouter failed, falling back... ({e})")
+                print(f"Engine Warning: OpenRouter {complexity} failed, falling back... ({e})")
 
-        # 3. Native Backup
+        # 3. Native Backup (Gemini)
         try:
             return self._ask_gemini_native(system, user, history, stream, temperature, images=images), "gemini"
         except Exception as e:

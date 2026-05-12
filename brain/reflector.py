@@ -42,7 +42,7 @@ class Reflector:
                 existing["wins"] = existing.get("wins", 0) + 1
             else:
                 existing["fails"] = existing.get("fails", 0) + 1
-            existing["last_outcome"] = "ok" if ok else result.get("error", "fail")[:200]
+            existing["last_outcome"] = "ok" if ok else (result.get("error") or "fail")[:200]
             existing["last_ts"] = datetime.now().isoformat()
             self.memory.remember(key, existing, category="playbook")
 

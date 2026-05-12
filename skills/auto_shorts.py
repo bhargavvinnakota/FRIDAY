@@ -8,8 +8,13 @@ import os
 import json
 import subprocess
 from pathlib import Path
-from termcolor import colored
 from typing import Optional
+
+try:
+    from termcolor import colored
+except ImportError:
+    def colored(text: str, *_args, **_kwargs) -> str:
+        return text
 
 from .registry import Skill, Operation, SkillResult, Risk
 

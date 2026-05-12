@@ -25,6 +25,7 @@ except ImportError:
     yaml = None
 
 from friday.brain.memory import Memory
+from friday.brain.action_envelope import build_action_envelope, write_action_proof
 from friday.brain.planner import Planner, Plan, Step
 from friday.brain.policy import Policy
 from friday.brain.reflector import Reflector
@@ -100,9 +101,53 @@ class AutonomyEngine:
         APPROVAL_FILE.write_text(json.dumps(items, indent=2, default=str))
 
     def queue_for_approval(self, skill: str, operation: str, kwargs: dict,
-                           reason: str) -> str:
+                           reason: str, goal: str | None = None,
+                           policy_decision: dict | None = None,
+                           trace_id: str | None = None) -> str:
         import uuid
         aid = uuid.uuid4().hex[:8]
+        proof: dict[str, Any] = {}
+        try:
+            skill_obj = self.registry.get(skill)
+            op = skill_obj.operations.get(operation) if skill_obj else None
+            risk = op.risk if op else "unknown"
+            decision = policy_decision or {
+                "allow": False,
+                "requires_approval": True,
+                "reason": reason,
+                "autonomy_level": self.policy.autonomy_level,
+                "policy_decision": "queue",
+            }
+            envelope = build_action_envelope(
+                skill=skill,
+                operation=operation,
+                actor="autonomy",
+                risk_tier=risk,
+                args=kwargs,
+                policy_decision=decision,
+                goal=goal,
+                approval_id=aid,
+                expected_outcome="Queue action for Bhargav approval before execution.",
+                rollback="Reject or hold the pending approval before execution.",
+                notification="summary",
+                post_action_metric="approval_status",
+                trace_id=trace_id,
+            )
+            proof_path = write_action_proof(envelope, {
+                "ok": True,
+                "data": {"status": "queued", "approval_id": aid},
+                "artifacts": [],
+                "followup": [],
+            })
+            proof = {
+                "action_envelope": envelope.to_dict(),
+                "proof_path": proof_path,
+                "trace_id": envelope.trace_id,
+                "risk_tier": envelope.risk_tier,
+                "policy_decision": envelope.policy_decision,
+            }
+        except Exception as e:
+            proof = {"proof_error": f"{type(e).__name__}: {e}"}
         items = self._load_approvals()
         items.append({
             "id": aid,
@@ -112,6 +157,7 @@ class AutonomyEngine:
             "reason": reason,
             "status": "pending",
             "created_at": datetime.now().isoformat(),
+            **proof,
         })
         self._save_approvals(items)
         return aid
@@ -131,12 +177,38 @@ class AutonomyEngine:
                 it["approved_at"] = datetime.now().isoformat()
                 self._save_approvals(items)
                 # Execute now
+                action_envelope = it.get("action_envelope") or {}
                 result = self.registry.invoke(it["skill"], it["operation"],
                                               _actor="user_approved",
+                                              _approval_id=aid,
+                                              _goal=action_envelope.get("goal"),
+                                              _policy_decision={
+                                                  "allow": True,
+                                                  "reason": f"user approved {aid}",
+                                                  "requires_approval": False,
+                                                  "autonomy_level": self.policy.autonomy_level,
+                                                  "policy_decision": "allow",
+                                              },
                                               **it.get("kwargs", {}))
-                it["status"] = "executed"
-                it["result"] = result.to_dict()
-                self._save_approvals(items)
+                # Reload before writing the execution result. Some approved
+                # operations, especially outreach.queue_for_approval, append
+                # new approval records as their main side effect. Saving the
+                # old in-memory snapshot here would silently erase those new
+                # records and make Friday "act" without leaving usable work.
+                latest = self._load_approvals()
+                for latest_item in latest:
+                    if latest_item.get("id") == aid:
+                        if latest_item.get("status") == "approved":
+                            latest_item["status"] = "executed"
+                        else:
+                            latest_item["execution_status"] = "executed"
+                        latest_item["result"] = result.to_dict()
+                        break
+                else:
+                    it["status"] = "executed"
+                    it["result"] = result.to_dict()
+                    latest.append(it)
+                self._save_approvals(latest)
                 return {"ok": True, "action_ok": result.ok,
                         "result": result.to_dict(), "id": aid}
         return {"ok": False, "error": f"no pending approval with id={aid}"}
@@ -195,10 +267,13 @@ class AutonomyEngine:
         self.planner.log_plan(plan)
 
         # Execute up to max_actions steps
+        context: dict[str, Any] = {}
         for step in plan.steps[:self.max_actions]:
             result.steps_attempted += 1
-            outcome = self._execute_step(step, goal, dry_run=dry_run)
+            outcome = self._execute_step(step, goal, dry_run=dry_run, context=context)
             result.outcomes.append(outcome)
+            if outcome.get("data"):
+                context.update(outcome["data"])
             if outcome["status"] == "executed":
                 result.steps_executed += 1
             elif outcome["status"] == "queued":
@@ -216,7 +291,8 @@ class AutonomyEngine:
         result.finished_at = datetime.now().isoformat()
         return result
 
-    def _execute_step(self, step: Step, goal: dict, dry_run: bool = False) -> dict:
+    def _execute_step(self, step: Step, goal: dict, dry_run: bool = False,
+                      context: dict[str, Any] | None = None) -> dict:
         skill = self.registry.get(step.skill)
         op = skill.operations.get(step.operation) if skill else None
         if not op:
@@ -224,13 +300,21 @@ class AutonomyEngine:
                     "reason": "skill/op not found"}
         risk = op.risk
         critical = goal.get("priority", 0) >= 90
+        kwargs = dict(step.kwargs)
+        context = context or {}
+        if step.skill == "outreach" and step.operation == "draft_next_touch":
+            kwargs.setdefault("leads", context.get("due"))
+        elif step.skill == "outreach" and step.operation == "queue_for_approval":
+            kwargs.setdefault("drafts", context.get("drafts"))
 
         decision = self.policy.check(step.skill, step.operation, risk, critical=critical)
         if not decision["allow"]:
             if decision.get("requires_approval"):
                 aid = self.queue_for_approval(
-                    step.skill, step.operation, step.kwargs,
-                    reason=f"goal={goal.get('id')} · {decision['reason']}"
+                    step.skill, step.operation, kwargs,
+                    reason=f"goal={goal.get('id')} · {decision['reason']}",
+                    goal=goal.get("id"),
+                    policy_decision=decision,
                 )
                 return {"status": "queued", "skill": step.skill, "operation": step.operation,
                         "approval_id": aid, "reason": decision["reason"]}
@@ -239,17 +323,20 @@ class AutonomyEngine:
 
         if dry_run:
             return {"status": "dry_run", "skill": step.skill, "operation": step.operation,
-                    "kwargs": step.kwargs}
+                    "kwargs": kwargs}
 
         t0 = time.time()
         res = self.registry.invoke(step.skill, step.operation, _actor="autonomy",
-                                   **step.kwargs)
+                                   _goal=goal.get("id"),
+                                   _policy_decision=decision,
+                                   _expected_outcome=f"Advance goal {goal.get('id')} via {step.skill}.{step.operation}",
+                                   **kwargs)
         elapsed_ms = int((time.time() - t0) * 1000)
         self.reflector.review_action(step.skill, step.operation, res.to_dict(),
                                      elapsed_ms, context={"goal": goal.get("id")})
         return {"status": "executed", "skill": step.skill, "operation": step.operation,
                 "ok": res.ok, "error": res.error, "elapsed_ms": elapsed_ms,
-                "artifacts_count": len(res.artifacts)}
+                "artifacts_count": len(res.artifacts), "data": res.data or {}}
 
     # --------- introspection ---------
     def status(self) -> dict:

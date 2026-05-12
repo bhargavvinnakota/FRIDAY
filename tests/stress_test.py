@@ -12,7 +12,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, os.path.expanduser("~"))
+sys.path.insert(0, os.path.expanduser("~/AI"))
 
 # ============================================================
 # Test Harness

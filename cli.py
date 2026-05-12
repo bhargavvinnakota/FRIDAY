@@ -66,6 +66,15 @@ def cmd_ask(args):
         triggers=["empire", "snapshot", "status", "overview", "all engines", "dashboard"],
         fn=lambda **kw: nexus.snapshot(),
     ))
+    orch.register(Tool(
+        "mission_brief", "Friday vision, capabilities, gaps, and next action.",
+        triggers=[
+            "vision", "mission", "capabilities", "capability", "what can you do",
+            "what are you built for", "build friday", "gap", "gaps", "next action",
+            "what should we build", "friday roadmap", "master plan"
+        ],
+        fn=lambda **kw: _mission_brief_data(),
+    ))
 
     q = " ".join(args.query)
     result = orch.respond(q, use_tools=True, heavy=args.heavy)
@@ -90,6 +99,269 @@ def cmd_chat(args):
             break
         result = orch.respond(q, use_tools=True)
         print(f"friday> {result['reply']}\n[{result['engine']}]\n")
+
+
+def _mission_brief_data():
+    from friday.skills.registry import get_registry
+    res = get_registry().invoke("mission_control", "mission_brief", _actor="cli")
+    if not res.ok:
+        return {"error": res.error}
+    return res.data
+
+
+def cmd_mission(args):
+    from friday.skills.registry import get_registry
+    reg = get_registry()
+    op_by_mode = {
+        "capabilities": "capability_map",
+        "gaps": "gap_report",
+        "next": "next_action",
+        "brief": "mission_brief",
+    }
+    op_name = op_by_mode.get(args.mode, "mission_brief")
+    result = reg.invoke("mission_control", op_name, _actor="cli")
+    print(json.dumps(result.to_dict(), indent=2, default=str))
+
+
+def cmd_operate(args):
+    """Run Friday's safe operator loop and emit proof artifacts."""
+    from friday.skills.registry import get_registry
+
+    reg = get_registry()
+    mission = reg.invoke("mission_control", "mission_brief", _actor="operate")
+    outreach_status = reg.invoke("outreach", "status", _actor="operate")
+    outbox = reg.invoke("outreach", "manual_send_outbox", _actor="operate")
+
+    summary = {
+        "ok": mission.ok and outreach_status.ok and outbox.ok,
+        "mission": mission.data,
+        "outreach": outreach_status.data,
+        "manual_send_outbox": outbox.data,
+        "artifacts": (mission.artifacts or []) + (outbox.artifacts or []),
+    }
+    print(json.dumps(summary, indent=2, default=str))
+
+
+def cmd_unlock(args):
+    """Run the 20-domain capability unlock/test pass."""
+    from friday.skills.registry import get_registry
+
+    result = get_registry().invoke("mission_control", "unlock_all", _actor="cli")
+    print(json.dumps(result.to_dict(), indent=2, default=str))
+
+
+def cmd_opportunities(args):
+    """Rank money opportunities and optionally create the next experiment."""
+    from friday.skills.registry import get_registry
+
+    reg = get_registry()
+    if args.launch:
+        opportunity_id = "" if args.launch == "__top__" else args.launch
+        result = reg.invoke(
+            "money_engine",
+            "launch_experiment",
+            _actor="cli",
+            _goal="money-engine",
+            opportunity_id=opportunity_id,
+            max_leads=args.max_leads,
+            dry_run=args.dry_run,
+        )
+    elif args.experiment:
+        result = reg.invoke(
+            "money_engine",
+            "create_experiment",
+            _actor="cli",
+            _goal="money-engine",
+            opportunity_id=args.experiment,
+        )
+    else:
+        result = reg.invoke(
+            "money_engine",
+            "rank_opportunities",
+            _actor="cli",
+            _goal="money-engine",
+            top_n=args.top,
+            refresh=args.refresh,
+        )
+    print(json.dumps(result.to_dict(), indent=2, default=str))
+
+
+def _invoke_json(skill: str, operation: str, actor: str = "cli", **kwargs):
+    from friday.skills.registry import get_registry
+    result = get_registry().invoke(skill, operation, _actor=actor, **kwargs)
+    print(json.dumps(result.to_dict(), indent=2, default=str))
+
+
+def _parse_note_pairs(items: list[str]) -> dict[str, str]:
+    notes: dict[str, str] = {}
+    for item in items or []:
+        if "=" not in item:
+            continue
+        key, value = item.split("=", 1)
+        key = key.strip()
+        if key:
+            notes[key] = value.strip()
+    return notes
+
+
+def cmd_nervous(args):
+    if args.mode == "recent":
+        _invoke_json("nervous_system", "recent", limit=args.limit, event_type=args.event_type)
+    else:
+        _invoke_json("nervous_system", "status")
+
+
+def cmd_immune(args):
+    _invoke_json("agent_immune", "scan", hours=args.hours, write_report=not args.no_report)
+
+
+def cmd_sleep(args):
+    if args.latest:
+        _invoke_json("memory_sleep", "latest")
+    else:
+        _invoke_json("memory_sleep", "consolidate", dry_run=args.dry_run, write_report=not args.no_report)
+
+
+def cmd_bench(args):
+    if args.latest:
+        _invoke_json("friday_bench", "latest")
+    else:
+        _invoke_json("friday_bench", "run_suite", quick=True, write_report=not args.no_report)
+
+
+def cmd_world(args):
+    if args.mode == "entities":
+        _invoke_json("world_twin", "entities", limit=args.limit)
+    elif args.mode == "status":
+        _invoke_json("world_twin", "status")
+    else:
+        _invoke_json("world_twin", "pulse", persist=not args.no_persist, use_web=args.web)
+
+
+def cmd_connectors(args):
+    if args.mode == "inventory":
+        _invoke_json("connector_center", "inventory", status=args.status, category=args.category)
+    elif args.mode == "gaps":
+        _invoke_json("connector_center", "gaps", priority=args.priority)
+    elif args.mode == "roadmap":
+        _invoke_json("connector_center", "roadmap")
+    elif args.mode == "test-plan":
+        _invoke_json("connector_center", "test_plan", include_write_tests=args.include_write_tests)
+    elif args.mode == "export":
+        _invoke_json("connector_center", "export_map")
+    else:
+        _invoke_json("connector_center", "status")
+
+
+def cmd_razorpay(args):
+    note_map = _parse_note_pairs(getattr(args, "note", []) or [])
+    if args.razorpay_cmd == "payments":
+        _invoke_json(
+            "razorpay",
+            "fetch_payments",
+            count=args.count,
+            skip=args.skip,
+            from_ts=args.from_ts,
+            to_ts=args.to_ts,
+            mode=args.mode,
+        )
+    elif args.razorpay_cmd == "orders":
+        _invoke_json(
+            "razorpay",
+            "fetch_orders",
+            count=args.count,
+            skip=args.skip,
+            from_ts=args.from_ts,
+            to_ts=args.to_ts,
+            mode=args.mode,
+        )
+    elif args.razorpay_cmd == "links":
+        _invoke_json(
+            "razorpay",
+            "fetch_payment_links",
+            count=args.count,
+            skip=args.skip,
+            from_ts=args.from_ts,
+            to_ts=args.to_ts,
+            mode=args.mode,
+        )
+    elif args.razorpay_cmd == "subscriptions":
+        _invoke_json(
+            "razorpay",
+            "fetch_subscriptions",
+            count=args.count,
+            skip=args.skip,
+            mode=args.mode,
+        )
+    elif args.razorpay_cmd == "create-link":
+        _invoke_json(
+            "razorpay",
+            "create_payment_link",
+            amount=args.amount,
+            customer_name=args.name,
+            customer_email=args.email,
+            customer_phone=args.phone,
+            description=args.description,
+            reference_id=args.reference_id,
+            accept_partial=args.accept_partial,
+            first_min_partial_amount=args.first_min_partial_amount,
+            expiry_minutes=args.expiry_minutes,
+            notify_email=args.notify_email,
+            notify_sms=args.notify_sms,
+            callback_url=args.callback_url,
+            callback_method=args.callback_method,
+            reminder_enable=args.reminder_enable,
+            upi_link=args.upi_link,
+            notes=note_map,
+            dry_run=not args.commit,
+            mode=args.mode,
+        )
+    elif args.razorpay_cmd == "create-order":
+        _invoke_json(
+            "razorpay",
+            "create_order",
+            amount=args.amount,
+            receipt=args.receipt,
+            partial_payment=args.partial_payment,
+            first_payment_min_amount=args.first_payment_min_amount,
+            notes=note_map,
+            dry_run=not args.commit,
+            mode=args.mode,
+        )
+    elif args.razorpay_cmd == "create-subscription":
+        _invoke_json(
+            "razorpay",
+            "create_subscription",
+            plan_id=args.plan_id,
+            total_count=args.total_count,
+            quantity=args.quantity,
+            customer_notify=args.customer_notify,
+            start_at=args.start_at,
+            expire_by=args.expire_by,
+            notes=note_map,
+            dry_run=not args.commit,
+            mode=args.mode,
+        )
+    elif args.razorpay_cmd == "verify-payment":
+        _invoke_json(
+            "razorpay",
+            "verify_payment_signature",
+            order_id=args.order_id,
+            payment_id=args.payment_id,
+            signature=args.signature,
+            mode=args.mode,
+        )
+    elif args.razorpay_cmd == "verify-webhook":
+        raw_body = Path(args.body_file).expanduser().read_text()
+        _invoke_json(
+            "razorpay",
+            "verify_webhook_signature",
+            raw_body=raw_body,
+            signature=args.signature,
+            mode=args.mode,
+        )
+    else:
+        _invoke_json("razorpay", "status", probe=args.probe, mode=args.mode)
 
 
 def cmd_status(args):
@@ -411,6 +683,131 @@ def main():
 
     sub.add_parser("chat", help="interactive REPL").set_defaults(func=cmd_chat)
     sub.add_parser("status", help="empire snapshot").set_defaults(func=cmd_status)
+    sub.add_parser("operate", help="run Friday's safe operator loop and emit proof artifacts").set_defaults(func=cmd_operate)
+    sub.add_parser("unlock", help="unlock and test all 20 Friday capability domains").set_defaults(func=cmd_unlock)
+    opp = sub.add_parser("opportunities", help="rank ethical money opportunities and create experiments")
+    opp.add_argument("--top", type=int, default=10)
+    opp.add_argument("--refresh", action="store_true")
+    opp.add_argument("--experiment", default="", help="create a reversible experiment for an opportunity id")
+    opp.add_argument("--launch", nargs="?", const="__top__", default="", help="launch the first safe action for an opportunity id, or top opportunity if omitted")
+    opp.add_argument("--max-leads", type=int, default=5)
+    opp.add_argument("--dry-run", action="store_true")
+    opp.set_defaults(func=cmd_opportunities)
+    ns = sub.add_parser("nervous", help="FRIDAY nervous-system event stream")
+    ns.add_argument("mode", nargs="?", choices=["status", "recent"], default="status")
+    ns.add_argument("--limit", type=int, default=20)
+    ns.add_argument("--event-type", default="")
+    ns.set_defaults(func=cmd_nervous)
+    immune = sub.add_parser("immune", help="scan for unsafe autonomy and prompt-injection signals")
+    immune.add_argument("--hours", type=int, default=24)
+    immune.add_argument("--no-report", action="store_true")
+    immune.set_defaults(func=cmd_immune)
+    sleep = sub.add_parser("sleep", help="run FRIDAY memory sleep consolidation")
+    sleep.add_argument("--dry-run", action="store_true")
+    sleep.add_argument("--no-report", action="store_true")
+    sleep.add_argument("--latest", action="store_true")
+    sleep.set_defaults(func=cmd_sleep)
+    bench = sub.add_parser("bench", help="run FRIDAY-Bench")
+    bench.add_argument("--no-report", action="store_true")
+    bench.add_argument("--latest", action="store_true")
+    bench.set_defaults(func=cmd_bench)
+    world = sub.add_parser("world", help="world twin pulse/entities/status")
+    world.add_argument("mode", nargs="?", choices=["pulse", "entities", "status"], default="pulse")
+    world.add_argument("--web", action="store_true")
+    world.add_argument("--no-persist", action="store_true")
+    world.add_argument("--limit", type=int, default=20)
+    world.set_defaults(func=cmd_world)
+    connectors = sub.add_parser("connectors", help="connector command center status/inventory/gaps")
+    connectors.add_argument("mode", nargs="?", choices=["status", "inventory", "gaps", "roadmap", "test-plan", "export"], default="status")
+    connectors.add_argument("--status", default="", help="filter inventory by status")
+    connectors.add_argument("--category", default="", help="filter inventory by category")
+    connectors.add_argument("--priority", default="", help="filter missing connectors by priority, e.g. P0")
+    connectors.add_argument("--include-write-tests", action="store_true")
+    connectors.set_defaults(func=cmd_connectors)
+    rz = sub.add_parser("razorpay", help="Razorpay payments rail status, dry-runs, and reads")
+    rz_sub = rz.add_subparsers(dest="razorpay_cmd")
+    rz_status = rz_sub.add_parser("status", help="show Razorpay readiness")
+    rz_status.add_argument("--probe", action="store_true")
+    rz_status.add_argument("--mode", default="", help="test or live")
+    rz_status.set_defaults(func=cmd_razorpay)
+
+    for name, help_text in (
+        ("payments", "fetch recent payments"),
+        ("orders", "fetch recent orders"),
+        ("links", "fetch recent payment links"),
+    ):
+        subparser = rz_sub.add_parser(name, help=help_text)
+        subparser.add_argument("--count", type=int, default=10)
+        subparser.add_argument("--skip", type=int, default=0)
+        subparser.add_argument("--from-ts", type=int, default=0)
+        subparser.add_argument("--to-ts", type=int, default=0)
+        subparser.add_argument("--mode", default="", help="test or live")
+        subparser.set_defaults(func=cmd_razorpay)
+
+    rz_subs = rz_sub.add_parser("subscriptions", help="fetch recent subscriptions")
+    rz_subs.add_argument("--count", type=int, default=10)
+    rz_subs.add_argument("--skip", type=int, default=0)
+    rz_subs.add_argument("--mode", default="", help="test or live")
+    rz_subs.set_defaults(func=cmd_razorpay)
+
+    rz_link = rz_sub.add_parser("create-link", help="preview or create a payment link")
+    rz_link.add_argument("--amount", required=True, help="amount in INR major units, e.g. 499.00")
+    rz_link.add_argument("--name", default="")
+    rz_link.add_argument("--email", default="")
+    rz_link.add_argument("--phone", default="")
+    rz_link.add_argument("--description", default="")
+    rz_link.add_argument("--reference-id", default="")
+    rz_link.add_argument("--accept-partial", action="store_true")
+    rz_link.add_argument("--first-min-partial-amount", default="")
+    rz_link.add_argument("--expiry-minutes", type=int, default=0)
+    rz_link.add_argument("--notify-email", action="store_true")
+    rz_link.add_argument("--notify-sms", action="store_true")
+    rz_link.add_argument("--callback-url", default="")
+    rz_link.add_argument("--callback-method", default="")
+    rz_link.add_argument("--reminder-enable", action="store_true")
+    rz_link.add_argument("--upi-link", action="store_true")
+    rz_link.add_argument("--note", action="append", default=[], help="k=v note pair")
+    rz_link.add_argument("--commit", action="store_true", help="perform the live API call instead of dry-run preview")
+    rz_link.add_argument("--mode", default="", help="test or live")
+    rz_link.set_defaults(func=cmd_razorpay)
+
+    rz_order = rz_sub.add_parser("create-order", help="preview or create an order")
+    rz_order.add_argument("--amount", required=True, help="amount in INR major units, e.g. 499.00")
+    rz_order.add_argument("--receipt", default="")
+    rz_order.add_argument("--partial-payment", action="store_true")
+    rz_order.add_argument("--first-payment-min-amount", default="")
+    rz_order.add_argument("--note", action="append", default=[], help="k=v note pair")
+    rz_order.add_argument("--commit", action="store_true")
+    rz_order.add_argument("--mode", default="", help="test or live")
+    rz_order.set_defaults(func=cmd_razorpay)
+
+    rz_sub_create = rz_sub.add_parser("create-subscription", help="preview or create a subscription")
+    rz_sub_create.add_argument("--plan-id", required=True)
+    rz_sub_create.add_argument("--total-count", required=True, type=int)
+    rz_sub_create.add_argument("--quantity", type=int, default=1)
+    rz_sub_create.add_argument("--customer-notify", action="store_true")
+    rz_sub_create.add_argument("--start-at", type=int, default=0)
+    rz_sub_create.add_argument("--expire-by", type=int, default=0)
+    rz_sub_create.add_argument("--note", action="append", default=[], help="k=v note pair")
+    rz_sub_create.add_argument("--commit", action="store_true")
+    rz_sub_create.add_argument("--mode", default="", help="test or live")
+    rz_sub_create.set_defaults(func=cmd_razorpay)
+
+    rz_verify_payment = rz_sub.add_parser("verify-payment", help="verify checkout signature")
+    rz_verify_payment.add_argument("--order-id", required=True)
+    rz_verify_payment.add_argument("--payment-id", required=True)
+    rz_verify_payment.add_argument("--signature", required=True)
+    rz_verify_payment.add_argument("--mode", default="", help="test or live")
+    rz_verify_payment.set_defaults(func=cmd_razorpay)
+
+    rz_verify_webhook = rz_sub.add_parser("verify-webhook", help="verify webhook signature from a body file")
+    rz_verify_webhook.add_argument("--body-file", required=True)
+    rz_verify_webhook.add_argument("--signature", required=True)
+    rz_verify_webhook.add_argument("--mode", default="", help="test or live")
+    rz_verify_webhook.set_defaults(func=cmd_razorpay)
+    ms = sub.add_parser("mission", help="Friday vision, capabilities, gaps, and next action")
+    ms.add_argument("mode", nargs="?", choices=["brief", "capabilities", "gaps", "next"], default="brief")
+    ms.set_defaults(func=cmd_mission)
     sub.add_parser("briefing", help="run morning briefing").set_defaults(func=cmd_briefing)
     sub.add_parser("debrief", help="run evening debrief").set_defaults(func=cmd_debrief)
     sub.add_parser("heartbeat", help="run one sensor sweep").set_defaults(func=cmd_heartbeat)

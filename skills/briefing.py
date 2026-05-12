@@ -46,9 +46,19 @@ class BriefingSkill(Skill):
     def op_run_ad_hoc(self, **_) -> SkillResult:
         try:
             from friday.actions import nexus, comms
+            from friday.skills.connector_center import ConnectorCenterSkill
             snap = nexus.snapshot()
+            connector_status = ConnectorCenterSkill().op_status().data or {}
             lines = [f"🤖 *Friday ad-hoc briefing* {datetime.now().strftime('%H:%M')}",
                      f"Empire status: {snap.get('empire', {}).get('status', '?')}"]
+            if connector_status:
+                lines.append(
+                    f"Connector readiness: {connector_status.get('readiness_score', '?')}% "
+                    f"(verified {connector_status.get('verified_connected_score', '?')}%)"
+                )
+                if connector_status.get("action_needed"):
+                    broken = connector_status["action_needed"][0]
+                    lines.append(f"Connector blocker: {broken.get('id', '?')} needs reconnect")
             for engine, data in snap.items():
                 if isinstance(data, dict):
                     lines.append(f"- {engine}: {list(data.keys())[:3]}")

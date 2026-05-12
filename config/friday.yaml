@@ -89,6 +89,22 @@ nexus:
   crm_tracker: "~/agency/outreach/crm_tracker.csv"
   auditmind_api: "http://localhost:8000"
 
+payments:
+  razorpay:
+    enabled: true
+    mode: "test"
+    default_currency: "INR"
+    dry_run_by_default: true
+    events_path: "~/AI/friday/data/razorpay/events.jsonl"
+    webhooks_path: "~/AI/friday/data/razorpay/webhooks.jsonl"
+    # Secrets live in ~/.openclaw/.env, never in repo code:
+    # RAZORPAY_MODE=test|live
+    # RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET
+    # Optional mode-specific overrides:
+    # RAZORPAY_KEY_ID_TEST / RAZORPAY_KEY_SECRET_TEST
+    # RAZORPAY_KEY_ID_LIVE / RAZORPAY_KEY_SECRET_LIVE
+    # RAZORPAY_WEBHOOK_SECRET or mode-specific webhook secrets
+
 # ---------------- Security ----------------
 security:
   allowlist_shell_commands:

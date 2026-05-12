@@ -23,6 +23,7 @@ from typing import Any, Callable
 from .engine import MultiEngine
 from .memory import Memory
 from .personality import system_prompt
+from .mcp_manager import MCPManager
 
 
 # Phrases that signal the model slipped into generic-chatbot mode.
@@ -182,6 +183,45 @@ def scrub_reply(text: str) -> str:
     return out or text.strip()
 
 
+def _fallback_tool_reply(tool_used: str | None, tool_result: Any) -> str:
+    """Small deterministic summary when the LLM times out after a tool succeeds."""
+    if not tool_used or tool_result is None:
+        return ""
+    if isinstance(tool_result, dict):
+        if tool_used == "mission_brief" or "north_star" in tool_result:
+            next_action = tool_result.get("next_action") or {}
+            present = tool_result.get("present_capabilities") or []
+            partial = tool_result.get("partial_capabilities") or []
+            missing = tool_result.get("missing_capabilities") or []
+            readiness = tool_result.get("readiness_counts") or {}
+            gaps = tool_result.get("runtime_gaps") or []
+            return (
+                f"North star: {tool_result.get('north_star', 'Friday is Bhargav’s local-first operating intelligence.')}\n"
+                f"Capability evidence: {len(present)} present, {len(partial)} partial, {len(missing)} missing.\n"
+                f"Readiness: {readiness.get('proven', 0)} proven, {readiness.get('wired', 0)} wired, {readiness.get('prototype', 0)} prototype, {readiness.get('blocked', 0)} blocked.\n"
+                f"Runtime gap: {gaps[0] if gaps else 'No critical runtime gap found.'}\n"
+                f"Next action: {next_action.get('action', 'advance_agency_revenue_loop')} — {next_action.get('reason', 'move from architecture to proof.')}"
+            )
+        agency = tool_result.get("agency") or tool_result
+        if isinstance(agency, dict):
+            clients = agency.get("clients") or {}
+            leads = agency.get("leads") or {}
+            crm = agency.get("crm") or {}
+            if clients or leads or crm:
+                return (
+                    f"Agency: {clients.get('active', 0)}/{clients.get('total', 0)} active clients, "
+                    f"{leads.get('total', 0)} leads ({leads.get('with_phone', 0)} with phone), "
+                    f"{crm.get('total_outreach', 0)} outreach touches, {crm.get('closed', 0)} closed."
+                )
+        trading = tool_result.get("trading") or tool_result.get("brain")
+        empire = tool_result.get("empire")
+        if trading or empire:
+            trading_status = trading.get("status", "unknown") if isinstance(trading, dict) else "unknown"
+            empire_status = empire.get("status", "unknown") if isinstance(empire, dict) else "unknown"
+            return f"Status: trading={trading_status}, empire={empire_status}."
+    return f"{tool_used} returned data, but the model summary timed out."
+
+
 def _is_conversational(text: str) -> bool:
     low = text.strip().lower()
     if low in _CONVERSATIONAL_HINTS:
@@ -220,14 +260,26 @@ class Orchestrator:
         self.engine = engine
         self.memory = memory
         self.tools: dict[str, Tool] = tools or {}
+        self.mcp = MCPManager()
+        self._mcp_initialized = False
 
     def register(self, tool: Tool) -> None:
         self.tools[tool.name] = tool
 
     def _tool_manifest(self) -> str:
-        if not self.tools:
-            return "(no tools registered)"
-        return "\n".join(f"- {t.name}: {t.description}" for t in self.tools.values())
+        manifest = []
+        if self.tools:
+            manifest.append("NATIVE TOOLS:")
+            for t in self.tools.values():
+                manifest.append(f"- {t.name}: {t.description}")
+        
+        mcp_tools = self.mcp.get_tool_definitions()
+        if mcp_tools:
+            manifest.append("\nMCP TOOLS (Model Context Protocol):")
+            for t in mcp_tools:
+                manifest.append(f"- {t['server']}.{t['name']}: {t['description']}")
+        
+        return "\n".join(manifest) if manifest else "(no tools registered)"
 
     def _plan_prompt(self, user_query: str) -> str:
         return f"""You have these tools available:
@@ -298,7 +350,7 @@ Only output the JSON. No other text."""
                     "'what it means for you' (agency / trading / AI builder lens)."
                 )
                 user = f"HEADLINES ({len(items)}):\n{headlines}\n\nWrite the briefing."
-                force = "claude" if self.engine.claude.api_key else None
+                force = "claude" if getattr(self.engine.claude, "api_key", None) else None
                 raw, engine = self.engine.ask(sysp, user, force=force)
                 reply = scrub_reply(raw)
                 return {"reply": reply, "engine": engine,
@@ -342,7 +394,19 @@ Only output the JSON. No other text."""
           - Conversational / freeform → claude if API key (llama3.2 too small for personality)
           - heavy=True → heavy model (gemma3:4b or opus)
         """
+        import asyncio
         from datetime import datetime
+        
+        # 0. Initialize MCP only when explicitly enabled. Stdio MCP servers can
+        # block ordinary chat startup, so basic Friday responses must not depend
+        # on them being alive.
+        if use_tools and os.environ.get("FRIDAY_ENABLE_MCP") == "1" and not self._mcp_initialized:
+            try:
+                asyncio.run(asyncio.wait_for(self.mcp.connect_all(), timeout=3))
+                self._mcp_initialized = True
+            except Exception as e:
+                print(f"MCP Init Warning: {e}")
+
         sys = system_prompt()
         # Inject time/day context — Friday should "know" the clock
         now = datetime.now()
@@ -392,10 +456,10 @@ Only output the JSON. No other text."""
                     images = [_encode_image(str(ss_path))]
                     # 3. Adjust system prompt for vision
                     # Gracefully handle text-only models to prevent hallucination
-                    current_model = self.engine.ollama_heavy_model
+                    current_model = getattr(getattr(self.engine, "ollama", None), "model", "unknown")
                     vision_capable = any(v in current_model.lower() for v in ("vision", "llava", "minicpm", "paligemma"))
                     
-                    if not vision_capable and not self.engine.claude.api_key:
+                    if not vision_capable and not getattr(self.engine.claude, "api_key", None):
                         return {
                             "reply": f"Boss, my current neural net ({current_model}) is text-only. I need you to run `ollama pull llama3.2-vision` to restore my eyes.",
                             "engine": "system",
@@ -461,6 +525,10 @@ Only output the JSON. No other text."""
                 "- Write in Friday voice. Dry, specific, no filler."
             )
 
+        # Inject Tool Manifest so the model knows it can ask for more if needed
+        if use_tools:
+            parts.append(f"AVAILABLE CAPABILITIES:\n{self._tool_manifest()}")
+
         # Conversational flow rule
         parts.append(
             "OUTPUT RULES:\n"
@@ -472,6 +540,25 @@ Only output the JSON. No other text."""
 
         parts.append(f"\nBhargav: {user_query}")
         full_prompt = "\n\n".join(parts)
+
+        deterministic_reply = _fallback_tool_reply(tool_used, tool_result)
+        if tool_used and deterministic_reply and not heavy and not images:
+            reply = scrub_reply(deterministic_reply)
+            self.memory.add_turn("user", user_query)
+            self.memory.add_turn("assistant", reply)
+            self.memory.log_event("respond", {
+                "query": user_query[:200],
+                "engine": "deterministic",
+                "tool": tool_used,
+                "conversational": False,
+            })
+            return {
+                "reply": reply,
+                "engine": "deterministic",
+                "tool_used": tool_used,
+                "tool_result": tool_result,
+                "conversational": False,
+            }
 
         # ENGINE PICK
         #   - explicit force wins
@@ -505,7 +592,7 @@ Only output the JSON. No other text."""
             )
         except Exception as e:
             # Emergency fallback if all engines fail
-            reply = f"System Error: {e}"
+            reply = _fallback_tool_reply(tool_used, tool_result) or f"System Error: {e}"
             engine_used = "fail"
 
         # Post-scrub

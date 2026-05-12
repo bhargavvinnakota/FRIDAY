@@ -116,16 +116,19 @@ class Policy:
             # 1. Hard gate: forbidden by name or risk
             if risk == "forbidden":
                 return {"allow": False, "reason": "forbidden risk class",
-                        "requires_approval": False, "autonomy_level": self.autonomy_level}
+                        "requires_approval": False, "autonomy_level": self.autonomy_level,
+                        "policy_decision": "deny"}
             for gate in self._data.get("hard_gates", []):
                 if gate.lower() in f"{skill} {operation}".lower():
                     return {"allow": False, "reason": f"hard gate: {gate}",
-                            "requires_approval": True, "autonomy_level": self.autonomy_level}
+                            "requires_approval": True, "autonomy_level": self.autonomy_level,
+                            "policy_decision": "queue"}
 
             # 2. Autonomy off → always require approval
             if self.autonomy_level == "off":
                 return {"allow": False, "reason": "autonomy disabled",
-                        "requires_approval": True, "autonomy_level": "off"}
+                        "requires_approval": True, "autonomy_level": "off",
+                        "policy_decision": "queue"}
 
             # 3. Quiet window
             in_quiet, qname, allow_crit = self.in_quiet_window(now)
@@ -135,7 +138,8 @@ class Policy:
                 else:
                     return {"allow": False, "reason": f"quiet window: {qname}",
                             "requires_approval": False,
-                            "autonomy_level": self.autonomy_level}
+                            "autonomy_level": self.autonomy_level,
+                            "policy_decision": "deny"}
 
             # 4. Risk class vs autonomy level
             rc = self._data.get("risk_classes", {}).get(risk, {})
@@ -144,7 +148,8 @@ class Policy:
                 return {"allow": False,
                         "reason": f"risk={risk} requires higher autonomy than {self.autonomy_level}",
                         "requires_approval": True,
-                        "autonomy_level": self.autonomy_level}
+                        "autonomy_level": self.autonomy_level,
+                        "policy_decision": "queue"}
 
             # 5. Rate limits
             limits = self._data.get("rate_limits", {})
@@ -155,13 +160,15 @@ class Policy:
                 return {"allow": False,
                         "reason": f"rate limit: {recent}/{per_hour} invocations/hr",
                         "requires_approval": False,
-                        "autonomy_level": self.autonomy_level}
+                        "autonomy_level": self.autonomy_level,
+                        "policy_decision": "deny"}
 
             # Admit
             self._invocation_times.append(now)
             return {"allow": True, "reason": "ok",
                     "requires_approval": False,
-                    "autonomy_level": self.autonomy_level}
+                    "autonomy_level": self.autonomy_level,
+                    "policy_decision": "allow"}
 
     def can_telegram(self, now: datetime | None = None) -> bool:
         now = now or datetime.now()

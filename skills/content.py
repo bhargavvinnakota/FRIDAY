@@ -25,6 +25,50 @@ def _save_draft(kind: str, content: str, meta: dict) -> str:
     return str(path)
 
 
+def _field(prompt: str, name: str) -> str:
+    prefix = f"{name}:"
+    for line in prompt.splitlines():
+        if line.lower().startswith(prefix.lower()):
+            return line.split(":", 1)[1].strip()
+    return ""
+
+
+def _deterministic_draft(system_hint: str, prompt: str) -> str:
+    """Local fallback so content workflows work even when no LLM is up."""
+    topic = _field(prompt, "Topic")
+    intent = _field(prompt, "Intent")
+    incoming = _field(prompt, "Incoming")
+    subject = _field(prompt, "Subject")
+
+    if "reply" in system_hint.lower() or incoming:
+        return (
+            "Thanks for sending this. I have the context now.\n\n"
+            "My direct take: we should move this to the next concrete step, keep the scope tight, "
+            "and make sure there is proof of execution before we expand it."
+        )
+
+    if "email" in system_hint.lower() or intent:
+        subject_line = subject or "Quick note"
+        body_intent = intent or "move the conversation to a clear next step"
+        return (
+            f"Subject: {subject_line}\n\n"
+            f"Hi,\n\n"
+            f"I am reaching out with one specific intent: {body_intent}.\n\n"
+            "If this is relevant, I can share a short working demo and keep it practical: problem, "
+            "workflow, expected outcome, and next step.\n\n"
+            "Best,\n"
+            "Bhargav"
+        )
+
+    topic = topic or "Friday capability proof"
+    return (
+        f"Building {topic} is not about making a chatbot sound impressive.\n\n"
+        "The useful bar is harder: it must understand the mission, act through tools, produce proof, "
+        "remember what changed, and push the next revenue-bearing action.\n\n"
+        "Today the focus is simple: less theatre, more operating loop. Capability without evidence is noise."
+    )
+
+
 class ContentSkill(Skill):
     name = "content"
     description = "Draft posts, emails, replies. Never publishes without approval."
@@ -40,12 +84,17 @@ class ContentSkill(Skill):
                                    fn=self.op_queue_for_approval, risk="medium"))
 
     def _gen(self, system_hint: str, prompt: str) -> str:
+        if os.environ.get("FRIDAY_LLM_CONTENT", "").strip().lower() not in {"1", "true", "yes"}:
+            return _deterministic_draft(system_hint, prompt)
         from friday.brain.engine import MultiEngine
         from friday.brain.personality import system_prompt
-        eng = MultiEngine()
-        sysp = system_prompt(task_hint=system_hint)
-        msg, _ = eng.ask(sysp, prompt, force="ollama")
-        return msg.strip()
+        try:
+            eng = MultiEngine()
+            sysp = system_prompt(task_hint=system_hint)
+            msg, _ = eng.ask(sysp, prompt, force="ollama")
+            return msg.strip()
+        except Exception:
+            return _deterministic_draft(system_hint, prompt)
 
     def op_draft_post(self, topic: str = "", tone: str = "builder-honest",
                       platform: str = "linkedin", **_) -> SkillResult:

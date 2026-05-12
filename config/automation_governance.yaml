@@ -1,0 +1,269 @@
+# FRIDAY Automation Governance
+# Canonical control-plane policy for autonomous and human-approved operations.
+
+identity:
+  owner: Bhargav
+  operating_mode: sovereign_single_owner
+  default_state: supervised
+  mission: financial_sovereignty_with_zero_leakage
+
+autonomy_tiers:
+  T0_observe:
+    description: Read-only sensing, search, indexing, summarization, monitoring.
+    default_approval: auto
+  T1_draft:
+    description: Drafts and proposals with no external side effect.
+    default_approval: auto
+  T2_internal_write:
+    description: Writes to FRIDAY-owned internal stores, branches, scratch docs, or dev branches.
+    default_approval: auto_if_reversible
+  T3_external_reversible:
+    description: External reversible actions such as draft creation, staging deploys, calendar holds, CRM note updates.
+    default_approval: owner_approval_required
+  T4_external_irreversible:
+    description: Sends, publishes, production deploys, money-adjacent actions, or customer-visible mutations.
+    default_approval: owner_approval_required_with_two_step_confirmation
+  T5_forbidden:
+    description: Secrets exposure, raw credential handling, legal commitments, health actions, live money movement, live trading.
+    default_approval: never_autonomous
+
+approval_chains:
+  low_risk:
+    autonomy_tier: T0_observe
+    approvers: []
+    evidence_required:
+      - trace_id
+      - input_redaction
+      - result_summary
+  internal_change:
+    autonomy_tier: T2_internal_write
+    approvers:
+      - friday_policy_engine
+    evidence_required:
+      - trace_id
+      - diff_or_artifact
+      - rollback_path
+      - post_action_metric
+  external_action:
+    autonomy_tier: T3_external_reversible
+    approvers:
+      - Bhargav
+    evidence_required:
+      - trace_id
+      - dry_run_preview
+      - target_identity
+      - rollback_path
+      - expected_outcome
+  money_or_public_action:
+    autonomy_tier: T4_external_irreversible
+    approvers:
+      - Bhargav
+      - friday_policy_engine
+    evidence_required:
+      - trace_id
+      - target_identity
+      - amount_or_blast_radius
+      - dry_run_preview
+      - rollback_or_compensation_path
+      - explicit_confirmation_phrase
+
+agent_hierarchy:
+  orchestrator:
+    purpose: decomposes goals, allocates agents, merges outputs, enforces policy
+    can:
+      - read_all_internal_state
+      - delegate_tasks
+      - queue_approvals
+    cannot:
+      - send_external_messages
+      - move_money
+      - deploy_to_production
+  policy_engine:
+    purpose: classifies risk, validates scopes, blocks policy violations
+    can:
+      - inspect_action_envelopes
+      - require_approval
+      - deny_execution
+    cannot:
+      - execute_business_actions
+  audit_agent:
+    purpose: appends proofs, hashes artifacts, checks for leakage, reviews anomalies
+    can:
+      - read_logs
+      - emit_incidents
+      - quarantine_workflows
+    cannot:
+      - alter_financial_records
+  finance_agent:
+    purpose: revenue, cashflow, subscriptions, payout monitoring, opportunity ranking
+    can:
+      - read_financial_dashboards
+      - draft_financial_actions
+      - simulate_scenarios
+    cannot:
+      - move_money
+      - place_trades
+      - accept_legal_terms
+  growth_agent:
+    purpose: outreach, content, funnels, experiments
+    can:
+      - research
+      - draft_campaigns
+      - schedule_internal_assets
+    cannot:
+      - publish_without_approval
+      - spam
+  ops_agent:
+    purpose: infrastructure, databases, deploy pipelines, runbooks
+    can:
+      - stage_changes
+      - run_health_checks
+      - branch_databases
+    cannot:
+      - deploy_prod_without_approval
+      - rotate_secrets_manually
+  research_agent:
+    purpose: world awareness, competitor intelligence, model scouting
+    can:
+      - browse
+      - summarize
+      - maintain_knowledge_graph
+    cannot:
+      - trigger_external_business_actions
+  executive_assistant_agent:
+    purpose: calendar, inbox triage, reminders, daily briefings
+    can:
+      - read_mail_calendar_docs
+      - create_drafts
+      - prepare_daily_plan
+    cannot:
+      - send_or_delete_without_approval
+
+workflow_patterns:
+  required_execution_flow:
+    - sense
+    - classify_risk
+    - simulate_or_dry_run
+    - produce_action_envelope
+    - approval_or_auto_allow
+    - execute
+    - verify
+    - audit
+    - monitor
+  mandatory_safety_properties:
+    - idempotency_key_for_external_actions
+    - least_privilege_connector_scopes
+    - redact_inputs_and_outputs
+    - no_plaintext_secrets
+    - explicit_target_binding
+    - rate_limits
+    - blast_radius_limits
+    - retry_with_backoff
+    - kill_switch
+
+connectors_policy:
+  trust_zones:
+    green:
+      description: read-only or draft-safe systems
+      examples:
+        - gmail_read
+        - calendar_read
+        - drive_read
+        - github_read
+        - notion_search
+    amber:
+      description: reversible write systems with owner approval
+      examples:
+        - calendar_write
+        - draft_email
+        - staging_deploy
+        - crm_note
+    red:
+      description: public, financial, or production-impacting systems
+      examples:
+        - send_email
+        - publish_post
+        - production_deploy
+        - payouts
+        - subscription_changes
+        - account_aggregator_fetch
+
+secrets_and_identity:
+  rules:
+    - never store raw secrets in repo or chat logs
+    - use environment variables or secret managers only
+    - rotate tokens after suspected leakage
+    - separate read_only and write scopes
+    - prefer service accounts only when auditable and revocable
+  prohibited:
+    - otp_capture
+    - password_storage_in_memory_logs
+    - browser_autofill_exfiltration
+    - unscoped_personal_access_tokens
+
+auditing:
+  required_fields:
+    - trace_id
+    - actor
+    - goal
+    - connector
+    - operation
+    - risk_tier
+    - policy_decision
+    - approval_id
+    - artifacts
+    - verification_result
+  retention:
+    action_logs_days: 365
+    incident_logs_days: 730
+    approval_records_days: 730
+  review_cadence:
+    daily: failed_actions_and_anomalies
+    weekly: connector_scope_review
+    monthly: secret_rotation_and_policy_review
+
+monitoring:
+  key_metrics:
+    - connector_health
+    - approval_queue_age
+    - failed_action_rate
+    - money_pipeline_value
+    - outreach_response_rate
+    - deploy_failure_rate
+    - anomaly_count
+  alerts:
+    - broken_connector
+    - missing_webhook_events
+    - duplicate_external_action
+    - unauthorized_scope_growth
+    - unexplained_cost_spike
+
+incident_response:
+  severity_levels:
+    P0: suspected_secret_leak_or_money_movement
+    P1: public_or_customer_visible_incorrect_action
+    P2: broken_automation_or_data_integrity_issue
+    P3: degraded_internal_workflow
+  default_actions:
+    P0:
+      - disable_affected_connector
+      - pause_all_red_zone_automations
+      - notify_owner_immediately
+      - rotate_relevant_secrets
+    P1:
+      - pause_related_workflow
+      - notify_owner
+      - collect_audit_bundle
+    P2:
+      - retry_or_degrade_gracefully
+      - log_issue
+    P3:
+      - track_for_next_maintenance_window
+
+solo_founder_principle:
+  statement: Do not block FRIDAY on enterprise tools that assume org email or large-team workflows.
+  substitutions:
+    slack: telegram_plus_gmail_plus_notion
+    linear_or_jira: notion_db_plus_github_issues
+    hubspot_or_salesforce: notion_crm_plus_calendar_plus_gmail
+    sharepoint_or_confluence: google_drive_plus_notion

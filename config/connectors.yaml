@@ -1,0 +1,492 @@
+# FRIDAY Connector Command Center
+# This is the permissioned map of FRIDAY's external nervous system.
+# Status values:
+#   connected     - authenticated and recently verified from Codex
+#   available     - tool surface is available, but not verified in this repo run
+#   action_needed - connector exists but needs reconnect/config
+#   missing       - high-value connector not connected yet
+
+connectors:
+  - id: gmail
+    name: Gmail
+    category: communications
+    status: connected
+    auth_state: verified_profile
+    risk_tier: high
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    verified_on: "2026-05-12"
+    capabilities:
+      - search and read inbox
+      - read attachments
+      - create drafts
+      - send emails
+      - label archive and trash messages
+    friday_use_cases:
+      - inbox triage
+      - opportunity detection from inbound email
+      - outreach draft preparation
+      - follow-up tracking
+    safe_defaults:
+      - read and draft autonomously
+      - require approval before sending or deleting
+
+  - id: google_calendar
+    name: Google Calendar
+    category: calendar
+    status: connected
+    auth_state: verified_profile
+    risk_tier: medium
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    verified_on: "2026-05-12"
+    capabilities:
+      - read events
+      - fetch event details
+      - respond to invitations
+      - delete events
+      - inspect color palettes
+    friday_use_cases:
+      - day planning
+      - meeting prep
+      - time-blocking
+      - follow-up reminders
+    safe_defaults:
+      - read availability autonomously
+      - require approval before creating deleting or responding
+
+  - id: google_drive
+    name: Google Drive
+    category: knowledge
+    status: connected
+    auth_state: verified_profile
+    risk_tier: medium
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    verified_on: "2026-05-12"
+    capabilities:
+      - search and fetch files
+      - create Docs Sheets and Slides
+      - edit Docs Sheets and Slides
+      - import and export files
+    friday_use_cases:
+      - personal knowledge retrieval
+      - business document drafting
+      - FRIDAY research corpus
+      - investor/client deck generation
+    safe_defaults:
+      - read and create drafts autonomously
+      - require approval before editing shared or critical files
+
+  - id: github
+    name: GitHub
+    category: code
+    status: available
+    auth_state: tool_surface_available
+    risk_tier: high
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    capabilities:
+      - list issues and pull requests
+      - compare commits
+      - inspect reviews
+      - mark pull requests ready or draft
+    friday_use_cases:
+      - Meta-Friday PR loop
+      - issue triage
+      - code review
+      - release preparation
+    safe_defaults:
+      - read and prepare patches autonomously
+      - require approval before changing PR state or merging
+
+  - id: notion
+    name: Notion
+    category: knowledge
+    status: available
+    auth_state: tool_surface_available
+    risk_tier: medium
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    capabilities:
+      - semantic search Notion workspace
+      - search connected sources exposed through Notion
+      - search users
+    friday_use_cases:
+      - operating manual
+      - task database
+      - business wiki
+      - decision log
+    safe_defaults:
+      - search autonomously
+      - require approval before writing public/team pages
+
+  - id: hugging_face
+    name: Hugging Face
+    category: ai_research
+    status: connected
+    auth_state: verified_profile
+    risk_tier: medium
+    phase: next
+    solo_friendly: true
+    requires_org_workspace: false
+    verified_on: "2026-05-12"
+    capabilities:
+      - search models datasets spaces and papers
+      - inspect repositories
+      - run CPU or GPU jobs
+    friday_use_cases:
+      - model scouting
+      - benchmark research
+      - self-hosted model experiments
+      - dataset discovery
+    safe_defaults:
+      - research autonomously
+      - require approval before paid compute jobs
+
+  - id: netlify
+    name: Netlify
+    category: deployment
+    status: connected
+    auth_state: verified_profile
+    risk_tier: high
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    verified_on: "2026-05-12"
+    capabilities:
+      - create and manage projects
+      - deploy sites
+      - inspect deploys
+      - manage environment variables
+    friday_use_cases:
+      - landing pages
+      - client demos
+      - product experiments
+    safe_defaults:
+      - inspect autonomously
+      - require approval before deploys env changes and production access changes
+
+  - id: vercel
+    name: Vercel
+    category: deployment
+    status: available
+    auth_state: tool_surface_available
+    risk_tier: high
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    capabilities:
+      - deploy current project
+      - list projects and deployments
+      - fetch build logs
+      - fetch protected deployment URLs
+    friday_use_cases:
+      - app deployment
+      - build failure repair
+      - preview review
+    safe_defaults:
+      - inspect autonomously
+      - require approval before production deploys
+
+  - id: neon_postgres
+    name: Neon Postgres
+    category: database
+    status: available
+    auth_state: tool_surface_available
+    risk_tier: high
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    capabilities:
+      - create projects and branches
+      - run SQL
+      - inspect schemas and slow queries
+      - provision auth and data APIs
+    friday_use_cases:
+      - FRIDAY memory database
+      - business data warehouse
+      - safe database branching
+    safe_defaults:
+      - inspect autonomously
+      - require approval before DDL writes deletes or production SQL
+
+  - id: supabase
+    name: Supabase
+    category: database
+    status: available
+    auth_state: tool_surface_available
+    risk_tier: high
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    capabilities:
+      - list projects
+      - execute SQL
+      - apply migrations
+      - manage edge functions
+      - run security and performance advisors
+    friday_use_cases:
+      - application backend
+      - RLS-secured business data
+      - serverless functions
+    safe_defaults:
+      - inspect autonomously
+      - require approval before migrations branch merges or destructive SQL
+
+  - id: cloudflare
+    name: Cloudflare
+    category: infrastructure
+    status: available
+    auth_state: api_spec_available
+    risk_tier: high
+    phase: next
+    solo_friendly: true
+    requires_org_workspace: false
+    capabilities:
+      - inspect Cloudflare API surface
+      - plan Workers R2 Vectorize AI Gateway DNS and security automations
+    friday_use_cases:
+      - edge compute
+      - vector search
+      - AI gateway observability
+      - security perimeter
+    safe_defaults:
+      - plan and inspect autonomously
+      - require approval before live DNS security or worker changes
+
+  - id: computer_use
+    name: Mac Computer Use
+    category: mac_native
+    status: connected
+    auth_state: tool_surface_available
+    risk_tier: high
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    capabilities:
+      - list apps
+      - inspect app UI state
+      - click type scroll and set values
+      - operate Mac apps through accessibility
+    friday_use_cases:
+      - Mac-native FRIDAY body
+      - app control
+      - incident response
+      - local workflow automation
+    safe_defaults:
+      - inspect autonomously
+      - require approval before destructive externally visible or purchase actions
+
+  - id: alpaca
+    name: Alpaca Market Data
+    category: markets
+    status: available
+    auth_state: tool_surface_available
+    risk_tier: medium
+    phase: later
+    solo_friendly: true
+    requires_org_workspace: false
+    capabilities:
+      - crypto quotes trades bars order books and snapshots
+    friday_use_cases:
+      - market awareness
+      - signal research
+      - risk dashboards
+    safe_defaults:
+      - read market data autonomously
+      - never place trades through this layer
+
+  - id: canva
+    name: Canva
+    category: creative
+    status: available
+    auth_state: tool_surface_available
+    risk_tier: medium
+    phase: next
+    solo_friendly: true
+    requires_org_workspace: false
+    capabilities:
+      - list brand kits
+      - upload assets from URLs
+    friday_use_cases:
+      - social creative
+      - pitch assets
+      - client collateral
+    safe_defaults:
+      - prepare assets autonomously
+      - require approval before publishing or client delivery
+
+  - id: quicknode
+    name: Quicknode
+    category: blockchain
+    status: available
+    auth_state: tool_surface_available
+    risk_tier: medium
+    phase: later
+    solo_friendly: true
+    requires_org_workspace: false
+    capabilities:
+      - inspect billing invoices and payments
+    friday_use_cases:
+      - blockchain infra visibility
+      - cost monitoring
+    safe_defaults:
+      - read billing autonomously
+      - require approval before infra or billing changes
+
+  - id: vantage
+    name: Vantage
+    category: finance_ops
+    status: action_needed
+    auth_state: invalid_token
+    risk_tier: low
+    phase: next
+    solo_friendly: true
+    requires_org_workspace: false
+    verified_on: "2026-05-12"
+    capabilities:
+      - cloud cost integrations
+      - cost reports
+      - forecasts budgets and anomalies
+    friday_use_cases:
+      - cloud spend control
+      - infrastructure cost anomaly alerts
+    safe_defaults:
+      - reconnect before use
+
+  - id: razorpay
+    name: Razorpay
+    category: money
+    status: action_needed
+    auth_state: awaiting_api_keys_or_test_validation
+    risk_tier: high
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    capabilities:
+      - fetch payments orders payment links and subscriptions
+      - create payment links
+      - create orders
+      - create subscriptions
+      - verify checkout and webhook signatures
+    friday_use_cases:
+      - india-native payment collection
+      - payment links for offers and pilots
+      - subscription setup for recurring revenue
+      - revenue event ingestion into FRIDAY
+    safe_defaults:
+      - inspect and dry-run autonomously
+      - require approval before live create send cancel refund or payout actions
+
+missing_connectors:
+  - id: stripe
+    name: Stripe
+    category: money
+    priority: P2
+    phase: later
+    solo_friendly: true
+    requires_org_workspace: false
+    availability_constraint: invite_only_india
+    alternative_if_blocked: razorpay
+    reason: Global expansion and international billing if access is granted. Not a day-one blocker for the India-first FRIDAY stack.
+    risk_tier: high
+  - id: cashfree
+    name: Cashfree
+    category: money
+    priority: P1
+    phase: next
+    solo_friendly: true
+    requires_org_workspace: false
+    reason: Secondary India-native payments rail for redundancy if a specific FRIDAY flow needs an alternative to Razorpay.
+    risk_tier: high
+  - id: lemonsqueezy_or_gumroad
+    name: Lemon Squeezy or Gumroad
+    category: money
+    priority: P1
+    phase: next
+    solo_friendly: true
+    requires_org_workspace: false
+    reason: Optional digital-product checkout fallback for global sales if India-native rails are insufficient for a specific offer type.
+    risk_tier: high
+  - id: account_aggregator_sandbox
+    name: India Account Aggregator Sandbox
+    category: money
+    priority: P0
+    phase: now
+    solo_friendly: false
+    requires_org_workspace: false
+    alternative_if_blocked: manual_statement_ingestion_until_aa_onboarding
+    reason: Permissioned financial visibility under RBI AA rules for Bhargav-owned accounts.
+    risk_tier: high
+  - id: slack
+    name: Slack
+    category: communications
+    priority: P1
+    phase: later
+    solo_friendly: false
+    requires_org_workspace: true
+    alternative_if_blocked: telegram_plus_gmail_plus_notion
+    reason: Business/team operating channel for alerts, approvals, and customer operations.
+    risk_tier: high
+  - id: linear_or_jira
+    name: Linear or Jira
+    category: operations
+    priority: P1
+    phase: later
+    solo_friendly: false
+    requires_org_workspace: true
+    alternative_if_blocked: notion_db_plus_github_issues
+    reason: Turns FRIDAY into an execution manager with tasks, roadmaps, bugs, and delivery loops.
+    risk_tier: medium
+  - id: hubspot_or_salesforce
+    name: HubSpot or Salesforce
+    category: sales
+    priority: P1
+    phase: later
+    solo_friendly: false
+    requires_org_workspace: true
+    alternative_if_blocked: notion_crm_plus_gmail_plus_calendar
+    reason: CRM memory for leads, deals, pipeline, and money-hunting workflows.
+    risk_tier: high
+  - id: youtube_adsense
+    name: YouTube and AdSense
+    category: growth
+    priority: P1
+    phase: next
+    solo_friendly: true
+    requires_org_workspace: false
+    reason: Revenue analytics, content experiments, channel growth, and monetization feedback.
+    risk_tier: medium
+  - id: linkedin
+    name: LinkedIn
+    category: growth
+    priority: P2
+    phase: later
+    solo_friendly: true
+    requires_org_workspace: false
+    reason: Founder-led distribution, lead generation, and outreach workflow.
+    risk_tier: high
+  - id: broker_read_only
+    name: Broker Read-Only API
+    category: markets
+    priority: P2
+    phase: later
+    solo_friendly: true
+    requires_org_workspace: false
+    reason: Portfolio visibility and risk monitoring without autonomous live trading.
+    risk_tier: high
+  - id: password_manager
+    name: Password Manager
+    category: security
+    priority: P2
+    phase: now
+    solo_friendly: true
+    requires_org_workspace: false
+    reason: Secret hygiene, credential inventory, and safer setup flows without secrets in code.
+    risk_tier: forbidden

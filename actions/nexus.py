@@ -85,8 +85,12 @@ def crm_summary() -> dict:
         with open(p) as f:
             reader = csv.DictReader(f)
             for row in reader:
+                if not any((v or "").strip() for v in row.values()):
+                    continue
                 counters["total_outreach"] += 1
-                stage = (row.get("stage") or "").lower()
+                stage = (row.get("stage") or row.get("Status") or row.get("Response") or "").lower()
+                if stage == "sent_stub":
+                    stage = "manual_sent"
                 if stage in ("replied", "qualified", "closed"):
                     counters[stage] = counters.get(stage, 0) + 1
     except Exception:

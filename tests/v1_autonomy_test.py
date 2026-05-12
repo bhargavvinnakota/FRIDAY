@@ -18,7 +18,7 @@ import time
 from datetime import datetime, timedelta, time as dtime
 from pathlib import Path
 
-sys.path.insert(0, os.path.expanduser("~"))
+sys.path.insert(0, os.path.expanduser("~/AI"))
 
 FRIDAY = Path(os.path.expanduser("~/AI/friday"))
 
@@ -189,6 +189,13 @@ try:
     else:
         r.bad(f"find_due_leads: {res.error}")
 
+    # outreach.manual_send_outbox (proof artifact for manual WhatsApp send)
+    res = reg.invoke("outreach", "manual_send_outbox", _actor="test")
+    if res.ok and "count" in res.data:
+        r.ok(f"outreach.manual_send_outbox → {res.data.get('count',0)} items")
+    else:
+        r.bad(f"manual_send_outbox: {res.error}")
+
     # research.local_search (fast, offline)
     res = reg.invoke("research", "local_search", _actor="test", query="autonomy")
     if res.ok and "matches" in res.data:
@@ -210,6 +217,126 @@ try:
     else:
         r.bad(f"outreach.status: {res.error}")
 
+    # mission_control.test_capabilities (20-domain Friday vision harness)
+    res = reg.invoke("mission_control", "test_capabilities", _actor="test", write_report=False, generate_artifacts=False)
+    summary = (res.data or {}).get("summary", {})
+    if res.ok and summary.get("total") == 20 and summary.get("failed") == 0:
+        r.ok(f"mission_control.test_capabilities → {summary.get('passed')}/20 passed")
+    else:
+        r.bad(f"mission_control.test_capabilities: {res.error or summary}")
+
+    # mission_control.mission_brief includes connector state
+    res = reg.invoke("mission_control", "mission_brief", _actor="test")
+    connector_status = (res.data or {}).get("connector_status", {})
+    if res.ok and connector_status.get("total", 0) >= 10 and (res.data or {}).get("next_action", {}).get("action"):
+        r.ok(f"mission_control.mission_brief → connectors {connector_status.get('readiness_score')}%")
+    else:
+        r.bad(f"mission_control.mission_brief: {res.error or res.data}")
+
+    # money_engine.rank_opportunities (ethical opportunity science)
+    res = reg.invoke("money_engine", "rank_opportunities", _actor="test", top_n=3, refresh=True)
+    opportunities = (res.data or {}).get("opportunities", [])
+    if res.ok and len(opportunities) >= 3 and opportunities[0].get("score", 0) >= opportunities[-1].get("score", 0):
+        r.ok(f"money_engine.rank_opportunities → top={opportunities[0].get('id')}")
+    else:
+        r.bad(f"money_engine.rank_opportunities: {res.error or res.data}")
+
+    # money_engine.create_experiment
+    top_id = opportunities[0].get("id") if opportunities else ""
+    res = reg.invoke("money_engine", "create_experiment", _actor="test", opportunity_id=top_id)
+    if res.ok and res.data.get("opportunity_id") == top_id and res.data.get("first_action"):
+        r.ok(f"money_engine.create_experiment → {res.data.get('id')}")
+    else:
+        r.bad(f"money_engine.create_experiment: {res.error or res.data}")
+
+    # money_engine.launch_experiment dry-run
+    res = reg.invoke("money_engine", "launch_experiment", _actor="test", opportunity_id=top_id, max_leads=2, dry_run=True)
+    if res.ok and res.data.get("dry_run") and res.data.get("would_queue_outreach"):
+        r.ok("money_engine.launch_experiment dry-run")
+    else:
+        r.bad(f"money_engine.launch_experiment dry-run: {res.error or res.data}")
+
+    # nervous_system.status
+    res = reg.invoke("nervous_system", "status", _actor="test")
+    if res.ok and "total" in (res.data or {}):
+        r.ok(f"nervous_system.status → {res.data.get('total')} events")
+    else:
+        r.bad(f"nervous_system.status: {res.error or res.data}")
+
+    # world_twin.pulse (local only)
+    res = reg.invoke("world_twin", "pulse", _actor="test", persist=True, use_web=False)
+    if res.ok and (res.data or {}).get("count", 0) >= 3:
+        r.ok(f"world_twin.pulse → {res.data.get('count')} events")
+    else:
+        r.bad(f"world_twin.pulse: {res.error or res.data}")
+
+    # connector_center.status
+    res = reg.invoke("connector_center", "status", _actor="test")
+    if res.ok and (res.data or {}).get("total", 0) >= 10 and (res.data or {}).get("missing_p0"):
+        r.ok(f"connector_center.status → {(res.data or {}).get('readiness_score')}% ready")
+    else:
+        r.bad(f"connector_center.status: {res.error or res.data}")
+
+    # connector_center.test_plan
+    res = reg.invoke("connector_center", "test_plan", _actor="test", include_write_tests=False)
+    if res.ok and (res.data or {}).get("count", 0) >= 10 and (res.data or {}).get("rule"):
+        r.ok(f"connector_center.test_plan → {(res.data or {}).get('count')} tests")
+    else:
+        r.bad(f"connector_center.test_plan: {res.error or res.data}")
+
+    # connector_center.roadmap
+    res = reg.invoke("connector_center", "roadmap", _actor="test")
+    roadmap = res.data or {}
+    if res.ok and roadmap.get("now") and roadmap.get("blocked_by_org_workspace") is not None:
+        r.ok(f"connector_center.roadmap → {len(roadmap.get('now', []))} now / {len(roadmap.get('blocked_by_org_workspace', []))} org-blocked")
+    else:
+        r.bad(f"connector_center.roadmap: {res.error or res.data}")
+
+    # agent_immune.status
+    res = reg.invoke("agent_immune", "status", _actor="test")
+    if res.ok or (res.data or {}).get("severity") in {"clear", "watch"}:
+        r.ok(f"agent_immune.status → {(res.data or {}).get('severity')}")
+    else:
+        r.bad(f"agent_immune.status: {res.error or res.data}")
+
+    # memory_sleep.consolidate dry-run
+    res = reg.invoke("memory_sleep", "consolidate", _actor="test", dry_run=True, write_report=False)
+    if res.ok and "playbook_updates" in (res.data or {}):
+        r.ok("memory_sleep.consolidate dry-run")
+    else:
+        r.bad(f"memory_sleep.consolidate: {res.error or res.data}")
+
+    # razorpay.status
+    res = reg.invoke("razorpay", "status", _actor="test")
+    if res.ok and "configured" in (res.data or {}) and "recommended_env_vars" in (res.data or {}):
+        r.ok(f"razorpay.status → configured={(res.data or {}).get('configured')}")
+    else:
+        r.bad(f"razorpay.status: {res.error or res.data}")
+
+    # razorpay.create_payment_link dry-run
+    res = reg.invoke(
+        "razorpay",
+        "create_payment_link",
+        _actor="test",
+        amount_inr="199.00",
+        customer_name="Autonomy Test",
+        customer_email="autonomy@example.com",
+        customer_phone="9876543210",
+        description="FRIDAY autonomy dry run",
+        dry_run=True,
+    )
+    if res.ok and (res.data or {}).get("dry_run") and (res.data or {}).get("payload", {}).get("amount") == 19900:
+        r.ok("razorpay.create_payment_link dry-run")
+    else:
+        r.bad(f"razorpay.create_payment_link dry-run: {res.error or res.data}")
+
+    # friday_bench.run_suite
+    res = reg.invoke("friday_bench", "run_suite", _actor="test", quick=True, write_report=False)
+    if res.ok and (res.data or {}).get("failed") == 0:
+        r.ok(f"friday_bench.run_suite → {(res.data or {}).get('score')}%")
+    else:
+        r.bad(f"friday_bench.run_suite: {res.error or res.data}")
+
     # Unknown skill
     res = reg.invoke("nonexistent", "x", _actor="test")
     if not res.ok and "unknown skill" in (res.error or ""):
@@ -230,6 +357,41 @@ try:
         r.ok(f"actions.jsonl populated ({alog.stat().st_size}B)")
     else:
         r.bad("actions.jsonl empty")
+
+    # Action envelope + proof artifact
+    res = reg.invoke(
+        "system",
+        "health_check",
+        _actor="test",
+        _goal="envelope-regression",
+        _policy_decision={
+            "allow": True,
+            "reason": "test policy gate",
+            "requires_approval": False,
+            "autonomy_level": "supervised",
+            "policy_decision": "allow",
+        },
+    )
+    env = res.action_envelope or {}
+    proof_path = Path(res.proof_path or "")
+    if env.get("trace_id") and env.get("risk_tier") == "low" and env.get("policy_decision") == "allow":
+        r.ok(f"action envelope attached → {env.get('trace_id')}")
+    else:
+        r.bad(f"action envelope missing fields: {env}")
+    if proof_path.exists():
+        proof = json.loads(proof_path.read_text())
+        if proof.get("action_envelope", {}).get("trace_id") == env.get("trace_id"):
+            r.ok("action proof artifact matches envelope")
+        else:
+            r.bad("action proof artifact trace mismatch")
+    else:
+        r.bad(f"action proof missing: {proof_path}")
+    latest = json.loads((FRIDAY / "data" / "actions.jsonl").read_text().splitlines()[-1])
+    required_log_keys = {"trace_id", "risk_tier", "policy_decision", "proof_path"}
+    if required_log_keys <= set(latest) and latest.get("proof_path"):
+        r.ok("actions.jsonl records trace/risk/policy/proof")
+    else:
+        r.bad(f"actions.jsonl missing envelope keys: {latest}")
 except Exception as e:
     r.bad(f"skill invocations: {e}")
 
@@ -483,6 +645,26 @@ try:
     else:
         r.bad(f"approve: {app}")
 
+    # Regression: approving a skill that appends approval records must not
+    # overwrite those child records with the old parent approval snapshot.
+    child_id = f"sidefx{int(time.time()) % 100000}"
+    draft = {
+        "id": child_id,
+        "lead": {"name": "Side Effect Test", "phone": "0000000000", "category": "test"},
+        "proposed_message": "Test draft; do not send.",
+        "drafted_at": datetime.now().isoformat(),
+        "status": "proposed",
+    }
+    aid4 = eng.queue_for_approval("outreach", "queue_for_approval",
+                                  {"drafts": [draft]}, reason="side-effect-preserve")
+    app2 = eng.approve(aid4)
+    items = eng._load_approvals()
+    if app2["ok"] and any(x.get("id") == child_id for x in items):
+        r.ok("approve preserves child approval side effects")
+        eng.reject(child_id)
+    else:
+        r.bad("approve erased child approval side effects")
+
     # Unknown id
     bad_r = eng.approve("nonexistent_id")
     if not bad_r["ok"]:
@@ -587,7 +769,7 @@ except Exception as e:
 # ====================================================================
 r.section("8. CLI COMMANDS")
 import subprocess
-HOME = os.path.expanduser("~")
+HOME = os.path.expanduser("~/AI")
 PY = os.path.expanduser("~/AI/friday/venv/bin/python3")
 
 def cli(args: list[str], timeout: int = 30) -> subprocess.CompletedProcess:
@@ -618,6 +800,73 @@ try:
         r.ok("friday skill system health_check")
     else:
         r.bad(f"friday skill: rc={c.returncode} {c.stderr[:200]}")
+
+    c = cli(["opportunities", "--top", "3", "--refresh"])
+    if c.returncode == 0 and "opportunities" in c.stdout and "score" in c.stdout:
+        r.ok("friday opportunities")
+    else:
+        r.bad(f"friday opportunities: rc={c.returncode} {c.stderr[:200]}")
+
+    c = cli(["opportunities", "--launch", "opp_local_whatsapp_pilot", "--max-leads", "2", "--dry-run"])
+    if c.returncode == 0 and "would_queue_outreach" in c.stdout:
+        r.ok("friday opportunities --launch dry-run")
+    else:
+        r.bad(f"friday opportunities --launch dry-run: rc={c.returncode} {c.stderr[:200]}")
+
+    c = cli(["nervous"])
+    if c.returncode == 0 and "total" in c.stdout:
+        r.ok("friday nervous")
+    else:
+        r.bad(f"friday nervous: rc={c.returncode} {c.stderr[:200]}")
+
+    c = cli(["world", "--no-persist"])
+    if c.returncode == 0 and "events" in c.stdout:
+        r.ok("friday world")
+    else:
+        r.bad(f"friday world: rc={c.returncode} {c.stderr[:200]}")
+
+    c = cli(["sleep", "--dry-run", "--no-report"])
+    if c.returncode == 0 and "playbook_updates" in c.stdout:
+        r.ok("friday sleep dry-run")
+    else:
+        r.bad(f"friday sleep dry-run: rc={c.returncode} {c.stderr[:200]}")
+
+    c = cli(["immune", "--no-report"])
+    if c.returncode == 0 and "severity" in c.stdout:
+        r.ok("friday immune")
+    else:
+        r.bad(f"friday immune: rc={c.returncode} {c.stderr[:200]}")
+
+    c = cli(["bench", "--no-report"])
+    if c.returncode == 0 and '"failed": 0' in c.stdout:
+        r.ok("friday bench")
+    else:
+        r.bad(f"friday bench: rc={c.returncode} {c.stderr[:200]}")
+
+    c = cli(["razorpay", "status"])
+    if c.returncode == 0 and "recommended_env_vars" in c.stdout and "configured" in c.stdout:
+        r.ok("friday razorpay status")
+    else:
+        r.bad(f"friday razorpay status: rc={c.returncode} {c.stderr[:200]}")
+
+    c = cli([
+        "razorpay",
+        "create-link",
+        "--amount",
+        "149.00",
+        "--name",
+        "CLI Test",
+        "--email",
+        "cli@example.com",
+        "--phone",
+        "9876543210",
+        "--description",
+        "FRIDAY CLI dry run",
+    ])
+    if c.returncode == 0 and '"dry_run": true' in c.stdout.lower():
+        r.ok("friday razorpay create-link dry-run")
+    else:
+        r.bad(f"friday razorpay create-link dry-run: rc={c.returncode} {c.stderr[:200]}")
 
     c = cli(["pending"])
     if c.returncode == 0:
