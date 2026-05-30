@@ -1,13 +1,16 @@
 """
 Friday :: Communications
-Outbound channels: Telegram push (primary), macOS notification, log.
+Outbound channels: OpenClaw message intents, optional legacy Telegram, log.
 """
 from __future__ import annotations
+from datetime import datetime, timezone
+import hashlib
 import json
 import os
 import ssl
 import urllib.parse
 import urllib.request
+import uuid
 from pathlib import Path
 
 # SSL context — use certifi if available (handles corp CA chain issues)
@@ -37,10 +40,73 @@ def _load_env() -> dict:
 
 
 ENV = _load_env()
+TRUE_VALUES = {"1", "true", "yes", "on"}
+
+
+def telegram_direct_enabled() -> bool:
+    """Direct Telegram is legacy-only; OpenClaw owns Telegram by default."""
+    owner = os.environ.get("OPENCLAW_TELEGRAM_OWNER", "openclaw").strip().lower()
+    direct = os.environ.get("FRIDAY_TELEGRAM_DIRECT", "").strip().lower()
+    return owner in {"friday", "friday-legacy"} and direct in TRUE_VALUES
+
+
+def _intent_dir() -> Path:
+    raw = os.environ.get(
+        "OPENCLAW_MESSAGE_INTENT_DIR",
+        "~/.openclaw/workspace/message_intents",
+    )
+    return Path(os.path.expanduser(raw))
+
+
+def _hash_optional(value: str | None) -> str | None:
+    if not value:
+        return None
+    return hashlib.sha256(value.encode()).hexdigest()[:12]
+
+
+def _write_openclaw_intent(text: str, chat_id: str | None = None, silent: bool = False) -> str:
+    """Write a local-only intent for OpenClaw to review and deliver later."""
+    target_dir = _intent_dir()
+    target_dir.mkdir(parents=True, exist_ok=True)
+    now = datetime.now(timezone.utc)
+    record = {
+        "schema": "openclaw.message_intent.v1",
+        "created_at": now.isoformat(),
+        "source": "friday",
+        "channel": "telegram",
+        "delivery_owner": "openclaw",
+        "delivery_allowed": False,
+        "reason": "telegram_single_owner_policy",
+        "risk_class": "R2",
+        "target": {
+            "chat_id_sha256_12": _hash_optional(chat_id),
+            "raw_target_stored": False,
+        },
+        "render": {
+            "text": text[:4000],
+            "parse_mode": "Markdown",
+            "silent": bool(silent),
+        },
+    }
+    path = target_dir / f"{now.strftime('%Y%m%dT%H%M%S%fZ')}-friday-{uuid.uuid4().hex[:8]}.json"
+    with open(path, "w") as f:
+        json.dump(record, f, indent=2)
+        f.write("\n")
+    return str(path)
 
 
 def telegram_push(text: str, chat_id: str | None = None, silent: bool = False) -> dict:
-    """Send message to Bhargav via Telegram."""
+    """Route Telegram output through OpenClaw unless legacy direct mode is explicit."""
+    if not telegram_direct_enabled():
+        intent_path = _write_openclaw_intent(text, chat_id=chat_id, silent=silent)
+        return {
+            "ok": True,
+            "delivered": False,
+            "routed_to_openclaw": True,
+            "intent_path": intent_path,
+            "error": "telegram_direct_disabled_openclaw_single_owner",
+        }
+
     token = ENV.get("TELEGRAM_BOT_TOKEN")
     chat = chat_id or ENV.get("TELEGRAM_CHAT_ID")
     if not token or not chat:
@@ -64,7 +130,10 @@ def telegram_push(text: str, chat_id: str | None = None, silent: bool = False) -
 
 
 def telegram_get_updates(offset: int | None = None, timeout: int = 20) -> list[dict]:
-    """Long-poll for incoming messages from Bhargav."""
+    """Long-poll for incoming messages only in explicit legacy direct mode."""
+    if not telegram_direct_enabled():
+        return []
+
     token = ENV.get("TELEGRAM_BOT_TOKEN")
     if not token:
         return []

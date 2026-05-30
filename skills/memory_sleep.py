@@ -15,10 +15,11 @@ from typing import Any
 from friday.brain.memory import Memory
 from friday.brain.nervous_system import append_event, stats as nervous_stats
 from friday.brain.reflector import Reflector
+from friday.paths import FRIDAY_ROOT
 
 from .registry import Operation, Skill, SkillResult
 
-FRIDAY = Path(os.path.expanduser("~/AI/friday"))
+FRIDAY = FRIDAY_ROOT
 ACTION_LOG = FRIDAY / "data" / "actions.jsonl"
 APPROVAL_FILE = FRIDAY / "data" / "pending_approvals.json"
 OPPORTUNITIES_FILE = FRIDAY / "data" / "opportunities.jsonl"
@@ -172,4 +173,3 @@ def _as_bool(value: Any) -> bool:
     if isinstance(value, str):
         return value.strip().lower() not in {"0", "false", "no", "off"}
     return bool(value)
-

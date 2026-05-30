@@ -14,7 +14,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-FRIDAY_ROOT = Path(os.path.expanduser("~/AI/friday"))
+from friday.paths import FRIDAY_ROOT
+
 MEM_PATH = FRIDAY_ROOT / "data" / "memory.json"
 
 DEFAULT_MEM = {

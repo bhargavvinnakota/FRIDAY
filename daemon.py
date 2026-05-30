@@ -139,13 +139,18 @@ def main():
     mem = Memory()
     mem.log_event("daemon_boot", {"pid": os.getpid(), "version": "1.0.0"})
 
-    threads = [
-        threading.Thread(target=telegram_worker, name="telegram", daemon=True),
+    threads = []
+    if comms.telegram_direct_enabled():
+        threads.append(threading.Thread(target=telegram_worker, name="telegram", daemon=True))
+    else:
+        print("  - telegram thread skipped: OpenClaw owns Telegram")
+
+    threads.extend([
         threading.Thread(target=heartbeat_worker, name="heartbeat", daemon=True, args=(60,)),
         threading.Thread(target=scheduler_worker, name="scheduler", daemon=True),
         threading.Thread(target=autonomy_worker, name="autonomy", daemon=True),
         threading.Thread(target=restart_watcher, name="restart_watcher", daemon=True),
-    ]
+    ])
     for t in threads:
         t.start()
         print(f"  ✓ {t.name} thread started")

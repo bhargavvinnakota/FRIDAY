@@ -15,15 +15,17 @@ import subprocess
 import urllib.request
 from pathlib import Path
 
+from friday.paths import NEXUS_ROOT
+
 
 HOME = Path(os.path.expanduser("~"))
 
 
 # ------------------ Trading ------------------
 def trading_state() -> dict:
-    p = HOME / "nexus-omega" / "trading-bot" / "brain_state.json"
+    p = NEXUS_ROOT / "trading-bot" / "brain_state.json"
     if not p.exists():
-        return {"status": "no_data", "message": "brain_state.json not found"}
+        return {"status": "no_data", "message": f"brain_state.json not found at {p}"}
     try:
         with open(p) as f:
             return json.load(f)
@@ -32,9 +34,9 @@ def trading_state() -> dict:
 
 
 def portfolio_state() -> dict:
-    p = HOME / "nexus-omega" / "trading-bot" / "portfolio.json"
+    p = NEXUS_ROOT / "trading-bot" / "portfolio.json"
     if not p.exists():
-        return {"status": "no_data"}
+        return {"status": "no_data", "message": f"portfolio.json not found at {p}"}
     try:
         with open(p) as f:
             return json.load(f)
@@ -104,7 +106,7 @@ def empire_status(url: str = "http://localhost:5055/api/status") -> dict:
         with urllib.request.urlopen(url, timeout=3) as r:
             return json.loads(r.read())
     except Exception:
-        return {"status": "offline", "hint": "start with: python3 ~/nexus-omega/command-center/empire_dashboard.py"}
+        return {"status": "offline", "hint": f"start with: python3 {NEXUS_ROOT / 'command-center' / 'empire_dashboard.py'}"}
 
 
 # ------------------ AuditMind ------------------
@@ -154,7 +156,7 @@ def log_scorecard(metric: str, value) -> dict:
 
 # ------------------ Run Daily Briefing ------------------
 def run_daily_briefing(telegram: bool = False) -> str:
-    script = HOME / "nexus-omega" / "command-center" / "daily_briefing.py"
+    script = NEXUS_ROOT / "command-center" / "daily_briefing.py"
     if not script.exists():
         return "[daily_briefing.py not found]"
     cmd = ["python3", str(script)]

@@ -11,10 +11,11 @@ from pathlib import Path
 from typing import Any
 
 from friday.brain.nervous_system import append_event
+from friday.paths import FRIDAY_ROOT
 
 from .registry import Operation, Skill, SkillResult
 
-FRIDAY = Path(os.path.expanduser("~/AI/friday"))
+FRIDAY = FRIDAY_ROOT
 CONFIG = FRIDAY / "config" / "connectors.yaml"
 EXPORT_DIR = FRIDAY / "data" / "connector_center"
 

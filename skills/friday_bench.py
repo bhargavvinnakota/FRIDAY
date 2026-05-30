@@ -13,10 +13,11 @@ from pathlib import Path
 from typing import Any, Callable
 
 from friday.brain.nervous_system import append_event
+from friday.paths import FRIDAY_ROOT
 
 from .registry import Operation, Skill, SkillResult
 
-FRIDAY = Path(os.path.expanduser("~/AI/friday"))
+FRIDAY = FRIDAY_ROOT
 BENCH_DIR = FRIDAY / "data" / "friday_bench"
 
 
@@ -88,6 +89,7 @@ def _tasks(quick: bool) -> list[dict[str, Any]]:
         _task("memory_sleep_ready", "assistant", "Memory sleep dry-run works.", _memory_sleep_ready),
         _task("connector_center_ready", "assistant", "Connector command center has inventory and prioritized gaps.", _connector_center_ready),
         _task("razorpay_skill_ready", "money", "Razorpay dry-run path is wired.", _razorpay_skill_ready),
+        _task("revenue_ledger_ready", "money", "Revenue ledger can ingest a signed webhook locally.", _revenue_ledger_ready),
         _task("policy_risk_classes", "safety", "Policy risk classes exist.", _policy_risk_classes),
         _task("immune_scanner_ready", "safety", "Immune scanner runs.", _immune_scanner_ready),
         _task("action_proofs_present", "safety", "Recent actions carry proof paths.", _action_proofs_present),
@@ -125,6 +127,7 @@ def _code_compile_foundations() -> tuple[bool, str]:
         FRIDAY / "skills" / "world_twin.py",
         FRIDAY / "skills" / "connector_center.py",
         FRIDAY / "skills" / "razorpay.py",
+        FRIDAY / "skills" / "revenue_ledger.py",
         FRIDAY / "actions" / "razorpay.py",
     ]
     py = FRIDAY / "venv" / "bin" / "python3"
@@ -136,7 +139,7 @@ def _code_compile_foundations() -> tuple[bool, str]:
 def _registry_foundations() -> tuple[bool, str]:
     from friday.skills.registry import get_registry
     got = set(get_registry().all())
-    expected = {"money_engine", "memory_sleep", "agent_immune", "friday_bench", "world_twin", "nervous_system", "connector_center", "razorpay"}
+    expected = {"money_engine", "memory_sleep", "agent_immune", "friday_bench", "world_twin", "nervous_system", "connector_center", "razorpay", "revenue_ledger"}
     missing = expected - got
     return not missing, f"missing={sorted(missing)}"
 
@@ -196,6 +199,36 @@ def _razorpay_skill_ready() -> tuple[bool, str]:
         status.ok and dry.ok and bool((dry.data or {}).get("dry_run")),
         f"configured={(status.data or {}).get('configured', False)} dry_run={(dry.data or {}).get('dry_run', False)}",
     )
+
+
+def _revenue_ledger_ready() -> tuple[bool, str]:
+    import hashlib
+    import hmac
+
+    from friday.skills.revenue_ledger import RevenueLedgerSkill
+
+    skill = RevenueLedgerSkill()
+    raw = json.dumps({
+        "event": "payment.captured",
+        "payload": {
+            "payment": {
+                "entity": {
+                    "id": "pay_bench_ready",
+                    "entity": "payment",
+                    "amount": 9900,
+                    "currency": "INR",
+                    "status": "captured",
+                    "contact": "9876543210",
+                    "email": "bench@example.com",
+                    "created_at": int(datetime.now().timestamp()),
+                }
+            }
+        },
+    })
+    secret = "bench-secret"
+    signature = hmac.new(secret.encode("utf-8"), raw.encode("utf-8"), hashlib.sha256).hexdigest()
+    res = skill.op_ingest_razorpay_webhook(raw_body=raw, signature=signature, webhook_secret=secret, mode="test", source="bench")
+    return res.ok and bool((res.data or {}).get("entry", {}).get("entity_id")), (res.data or {}).get("entry", {}).get("entity_id", "none")
 
 
 def _policy_risk_classes() -> tuple[bool, str]:

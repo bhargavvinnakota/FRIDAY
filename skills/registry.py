@@ -17,6 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Literal
 
+from friday.paths import FRIDAY_ROOT
 from friday.brain.action_envelope import (
     build_action_envelope,
     redact_inputs,
@@ -118,7 +119,7 @@ class SkillRegistry:
         self._skills: dict[str, Skill] = {}
         self._lock = threading.RLock()
         self.action_log_path = Path(action_log_path) if action_log_path else Path(
-            os.path.expanduser("~/AI/friday/data/actions.jsonl")
+            FRIDAY_ROOT / "data" / "actions.jsonl"
         )
         self.action_log_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -298,38 +299,46 @@ def get_registry() -> SkillRegistry:
             import pkgutil
             from . import registry
             
-            # 1. Load built-ins first for stability
-            # (Keeping explicit imports for core skills to avoid circular dependencies)
-            from . import system, watchdog, outreach, content, research, journal, briefing, intelligence, computer, empire, builder, swarm, broker, oracle, mac, omni_learner, self_refactor, vision, distillation, sys_research, mission_control, money_engine, nervous_system, agent_immune, memory_sleep, friday_bench, world_twin, connector_center, razorpay
-            _REGISTRY.register(system.SystemSkill())
-            _REGISTRY.register(watchdog.WatchdogSkill())
-            _REGISTRY.register(outreach.OutreachSkill())
-            _REGISTRY.register(content.ContentSkill())
-            _REGISTRY.register(research.ResearchSkill())
-            _REGISTRY.register(journal.JournalSkill())
-            _REGISTRY.register(briefing.BriefingSkill())
-            _REGISTRY.register(intelligence.IntelligenceSkill())
-            _REGISTRY.register(computer.ComputerSkill())
-            _REGISTRY.register(empire.EmpireSkill())
-            _REGISTRY.register(builder.BuilderSkill())
-            _REGISTRY.register(swarm.SwarmSkill())
-            _REGISTRY.register(broker.BrokerSkill())
-            _REGISTRY.register(oracle.OracleSkill())
-            _REGISTRY.register(mac.MacSkill())
-            _REGISTRY.register(omni_learner.OmniLearnerSkill())
-            _REGISTRY.register(self_refactor.SelfRefactorSkill())
-            _REGISTRY.register(vision.VisionSkill())
-            _REGISTRY.register(distillation.DistillationSkill())
-            _REGISTRY.register(sys_research.SystemResearchSkill())
-            _REGISTRY.register(mission_control.MissionControlSkill())
-            _REGISTRY.register(money_engine.MoneyEngineSkill())
-            _REGISTRY.register(razorpay.RazorpaySkill())
-            _REGISTRY.register(nervous_system.NervousSystemSkill())
-            _REGISTRY.register(agent_immune.AgentImmuneSkill())
-            _REGISTRY.register(memory_sleep.MemorySleepSkill())
-            _REGISTRY.register(friday_bench.FridayBenchSkill())
-            _REGISTRY.register(world_twin.WorldTwinSkill())
-            _REGISTRY.register(connector_center.ConnectorCenterSkill())
+            # 1. Load built-ins first for stability. Optional dependencies should
+            # not prevent core read-only skills from loading.
+            builtins = [
+                ("system", "SystemSkill"),
+                ("watchdog", "WatchdogSkill"),
+                ("outreach", "OutreachSkill"),
+                ("content", "ContentSkill"),
+                ("research", "ResearchSkill"),
+                ("journal", "JournalSkill"),
+                ("briefing", "BriefingSkill"),
+                ("intelligence", "IntelligenceSkill"),
+                ("computer", "ComputerSkill"),
+                ("empire", "EmpireSkill"),
+                ("builder", "BuilderSkill"),
+                ("swarm", "SwarmSkill"),
+                ("broker", "BrokerSkill"),
+                ("oracle", "OracleSkill"),
+                ("mac", "MacSkill"),
+                ("omni_learner", "OmniLearnerSkill"),
+                ("self_refactor", "SelfRefactorSkill"),
+                ("vision", "VisionSkill"),
+                ("distillation", "DistillationSkill"),
+                ("sys_research", "SystemResearchSkill"),
+                ("mission_control", "MissionControlSkill"),
+                ("money_engine", "MoneyEngineSkill"),
+                ("razorpay", "RazorpaySkill"),
+                ("revenue_ledger", "RevenueLedgerSkill"),
+                ("nervous_system", "NervousSystemSkill"),
+                ("agent_immune", "AgentImmuneSkill"),
+                ("memory_sleep", "MemorySleepSkill"),
+                ("friday_bench", "FridayBenchSkill"),
+                ("world_twin", "WorldTwinSkill"),
+                ("connector_center", "ConnectorCenterSkill"),
+            ]
+            for module_name, class_name in builtins:
+                try:
+                    module = importlib.import_module(f".{module_name}", package="friday.skills")
+                    _REGISTRY.register(getattr(module, class_name)())
+                except Exception as e:
+                    print(f"[Registry] Skipped optional skill {module_name}: {e}")
 
             # 2. Discover and load all 'auto_*' skills
             skills_dir = Path(__file__).parent

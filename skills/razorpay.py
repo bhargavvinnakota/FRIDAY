@@ -16,10 +16,11 @@ from typing import Any
 
 from friday.actions import razorpay as rz
 from friday.brain.nervous_system import append_event
+from friday.paths import FRIDAY_ROOT
 
 from .registry import Operation, Skill, SkillResult
 
-FRIDAY = Path(os.path.expanduser("~/AI/friday"))
+FRIDAY = FRIDAY_ROOT
 CONFIG = FRIDAY / "config" / "friday.yaml"
 DATA_DIR = FRIDAY / "data" / "razorpay"
 PREVIEW_DIR = DATA_DIR / "previews"

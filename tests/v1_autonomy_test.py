@@ -11,6 +11,8 @@ Exercises every piece of the v1.0 layer:
   - telegram approval commands (isolated)
 """
 from __future__ import annotations
+import hashlib
+import hmac
 import json
 import os
 import sys
@@ -329,6 +331,49 @@ try:
         r.ok("razorpay.create_payment_link dry-run")
     else:
         r.bad(f"razorpay.create_payment_link dry-run: {res.error or res.data}")
+
+    # revenue_ledger.ingest_razorpay_webhook
+    webhook_body = json.dumps({
+        "event": "payment.captured",
+        "payload": {
+            "payment": {
+                "entity": {
+                    "id": "pay_test_autonomy",
+                    "entity": "payment",
+                    "amount": 29900,
+                    "currency": "INR",
+                    "status": "captured",
+                    "contact": "9876543210",
+                    "email": "autonomy@example.com",
+                    "created_at": int(datetime.now().timestamp()),
+                }
+            }
+        },
+    })
+    webhook_secret = "autonomy-secret"
+    webhook_signature = hmac.new(webhook_secret.encode("utf-8"), webhook_body.encode("utf-8"), hashlib.sha256).hexdigest()
+    res = reg.invoke(
+        "revenue_ledger",
+        "ingest_razorpay_webhook",
+        _actor="test",
+        raw_body=webhook_body,
+        signature=webhook_signature,
+        webhook_secret=webhook_secret,
+        mode="test",
+        source="autonomy_test",
+    )
+    if res.ok and (res.data or {}).get("entry", {}).get("entity_id") == "pay_test_autonomy":
+        r.ok("revenue_ledger.ingest_razorpay_webhook")
+    else:
+        r.bad(f"revenue_ledger.ingest_razorpay_webhook: {res.error or res.data}")
+
+    # revenue_ledger.followups
+    res = reg.invoke("revenue_ledger", "followups", _actor="test", limit=5)
+    followups = (res.data or {}).get("followups", [])
+    if res.ok and isinstance(followups, list):
+        r.ok(f"revenue_ledger.followups → {len(followups)} items")
+    else:
+        r.bad(f"revenue_ledger.followups: {res.error or res.data}")
 
     # friday_bench.run_suite
     res = reg.invoke("friday_bench", "run_suite", _actor="test", quick=True, write_report=False)
@@ -867,6 +912,53 @@ try:
         r.ok("friday razorpay create-link dry-run")
     else:
         r.bad(f"friday razorpay create-link dry-run: rc={c.returncode} {c.stderr[:200]}")
+
+    c = cli(["revenue", "status"])
+    if c.returncode == 0 and "captured_payments_inr_total" in c.stdout and "entries" in c.stdout:
+        r.ok("friday revenue status")
+    else:
+        r.bad(f"friday revenue status: rc={c.returncode} {c.stderr[:200]}")
+
+    webhook_path = FRIDAY / "data" / "cli_revenue_webhook.json"
+    webhook_path.parent.mkdir(parents=True, exist_ok=True)
+    cli_body = json.dumps({
+        "event": "payment.captured",
+        "payload": {
+            "payment": {
+                "entity": {
+                    "id": "pay_cli_autonomy",
+                    "entity": "payment",
+                    "amount": 14900,
+                    "currency": "INR",
+                    "status": "captured",
+                    "contact": "9876543210",
+                    "email": "cli@example.com",
+                    "created_at": int(datetime.now().timestamp()),
+                }
+            }
+        },
+    })
+    webhook_path.write_text(cli_body)
+    cli_secret = "cli-secret"
+    cli_signature = hmac.new(cli_secret.encode("utf-8"), cli_body.encode("utf-8"), hashlib.sha256).hexdigest()
+    c = cli([
+        "revenue",
+        "ingest-razorpay-webhook",
+        "--body-file",
+        str(webhook_path),
+        "--signature",
+        cli_signature,
+        "--secret",
+        cli_secret,
+        "--mode",
+        "test",
+        "--source",
+        "cli_test",
+    ])
+    if c.returncode == 0 and '"inserted": true' in c.stdout.lower():
+        r.ok("friday revenue ingest-razorpay-webhook")
+    else:
+        r.bad(f"friday revenue ingest-razorpay-webhook: rc={c.returncode} {c.stderr[:200]}")
 
     c = cli(["pending"])
     if c.returncode == 0:

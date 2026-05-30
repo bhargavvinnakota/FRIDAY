@@ -14,8 +14,9 @@ from pathlib import Path
 from typing import Any
 
 from friday.brain.action_envelope import redact_inputs
+from friday.paths import FRIDAY_ROOT
 
-FRIDAY = Path(os.path.expanduser("~/AI/friday"))
+FRIDAY = FRIDAY_ROOT
 EVENT_DIR = FRIDAY / "data" / "nervous_system"
 EVENTS_FILE = EVENT_DIR / "events.jsonl"
 _LOCK = threading.RLock()
@@ -131,4 +132,3 @@ def stats() -> dict[str, Any]:
         "latest_ts": latest_ts,
         "path": str(EVENTS_FILE),
     }
-

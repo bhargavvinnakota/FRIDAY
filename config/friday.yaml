@@ -11,12 +11,12 @@ autonomy:
   enabled: true
   tick_interval_minutes: 15          # how often the autonomy loop fires
   max_actions_per_tick: 3            # safety cap
-  goals_path: "~/AI/friday/config/goals.yaml"
-  policies_path: "~/AI/friday/config/policies.yaml"
-  approval_file: "~/AI/friday/data/pending_approvals.json"
-  reflection_path: "~/AI/friday/data/reflections.jsonl"
-  plan_log_path: "~/AI/friday/data/plans.jsonl"
-  action_log_path: "~/AI/friday/data/actions.jsonl"
+  goals_path: "/Users/bhargav/AI Projects/friday/config/goals.yaml"
+  policies_path: "/Users/bhargav/AI Projects/friday/config/policies.yaml"
+  approval_file: "/Users/bhargav/AI Projects/friday/data/pending_approvals.json"
+  reflection_path: "/Users/bhargav/AI Projects/friday/data/reflections.jsonl"
+  plan_log_path: "/Users/bhargav/AI Projects/friday/data/plans.jsonl"
+  action_log_path: "/Users/bhargav/AI Projects/friday/data/actions.jsonl"
 
 # ---------------- Engine Routing ----------------
 engines:
@@ -44,7 +44,7 @@ engines:
 
 # ---------------- Memory ----------------
 memory:
-  path: "~/AI/friday/data/memory.json"
+  path: "/Users/bhargav/AI Projects/friday/data/memory.json"
   max_recent_turns: 40               # short-term dialogue
   max_facts: 500                     # long-term semantic facts
   max_events: 1000                   # episodic event log
@@ -54,11 +54,11 @@ loops:
   morning_briefing:
     enabled: true
     time: "06:00"
-    push_to: ["telegram", "log"]
+    push_to: ["openclaw_intent", "log"]
   evening_debrief:
     enabled: true
     time: "22:00"
-    push_to: ["telegram", "log"]
+    push_to: ["openclaw_intent", "log"]
   heartbeat:
     enabled: true
     interval_minutes: 60
@@ -69,8 +69,10 @@ loops:
 # ---------------- Channels ----------------
 channels:
   telegram:
-    enabled: true
-    # TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID from ~/.openclaw/.env
+    enabled: false
+    owner: "openclaw"
+    direct_mode_env: "FRIDAY_TELEGRAM_DIRECT=1 and OPENCLAW_TELEGRAM_OWNER=friday-legacy"
+    # TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID remain external secrets and are not used by default.
   cli:
     enabled: true
   webhook:
@@ -79,9 +81,9 @@ channels:
 
 # ---------------- Integrations ----------------
 nexus:
-  daily_briefing: "~/nexus-omega/command-center/daily_briefing.py"
+  daily_briefing: "/Users/bhargav/AI Projects/nexus-omega/command-center/daily_briefing.py"
   empire_dashboard: "http://localhost:5055/api/status"
-  trading_state: "~/nexus-omega/trading-bot/brain_state.json"
+  trading_state: "/Users/bhargav/AI Projects/nexus-omega/trading-bot/brain_state.json"
   scorecard_add: "~/agency/content/weekly_scorecard.py"
   post_generator: "~/agency/content/post_generator.py"
   deploy_bot: "~/agency/tools/deploy_bot.py"
@@ -95,8 +97,8 @@ payments:
     mode: "test"
     default_currency: "INR"
     dry_run_by_default: true
-    events_path: "~/AI/friday/data/razorpay/events.jsonl"
-    webhooks_path: "~/AI/friday/data/razorpay/webhooks.jsonl"
+    events_path: "/Users/bhargav/AI Projects/friday/data/razorpay/events.jsonl"
+    webhooks_path: "/Users/bhargav/AI Projects/friday/data/razorpay/webhooks.jsonl"
     # Secrets live in ~/.openclaw/.env, never in repo code:
     # RAZORPAY_MODE=test|live
     # RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET
@@ -104,6 +106,13 @@ payments:
     # RAZORPAY_KEY_ID_TEST / RAZORPAY_KEY_SECRET_TEST
     # RAZORPAY_KEY_ID_LIVE / RAZORPAY_KEY_SECRET_LIVE
     # RAZORPAY_WEBHOOK_SECRET or mode-specific webhook secrets
+
+revenue_ledger:
+  enabled: true
+  ledger_path: "/Users/bhargav/AI Projects/friday/data/revenue_ledger/entries.jsonl"
+  state_path: "/Users/bhargav/AI Projects/friday/data/revenue_ledger/state.json"
+  receipts_path: "/Users/bhargav/AI Projects/friday/data/revenue_ledger/razorpay_webhook_receipts.jsonl"
+  default_window_days: 30
 
 # ---------------- Security ----------------
 security:

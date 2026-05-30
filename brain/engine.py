@@ -12,10 +12,15 @@ import urllib.error
 import time
 from pathlib import Path
 from typing import Any
-from dotenv import load_dotenv
+from friday.paths import FRIDAY_ROOT
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv(*_args, **_kwargs):
+        return False
 
 # Load .env
-FRIDAY_ROOT = Path(os.path.expanduser("~/AI/friday"))
 load_dotenv(FRIDAY_ROOT / ".env")
 
 try:

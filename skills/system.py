@@ -12,8 +12,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from .registry import Skill, Operation, SkillResult
+from friday.paths import AGENCY_ROOT, FRIDAY_ROOT, NEXUS_ROOT
 
-FRIDAY = Path(os.path.expanduser("~/AI/friday"))
+FRIDAY = FRIDAY_ROOT
 
 
 class SystemSkill(Skill):
@@ -27,7 +28,7 @@ class SystemSkill(Skill):
                                    fn=self.op_prune_memory, risk="low"))
         self.register_op(Operation("health_check", "Check disk, python, ollama, memory file.",
                                    fn=self.op_health_check, risk="low"))
-        self.register_op(Operation("disk_report", "Free space across ~/AI/friday and ~/nexus-omega.",
+        self.register_op(Operation("disk_report", "Free space across Friday and Nexus roots.",
                                    fn=self.op_disk_report, risk="low"))
         self.register_op(Operation("restart_daemon", "Request daemon self-restart via touch file.",
                                    fn=self.op_restart_daemon, risk="medium", requires_confirm=True))
@@ -108,7 +109,7 @@ class SystemSkill(Skill):
 
     def op_disk_report(self, **_) -> SkillResult:
         report = {}
-        for target in [FRIDAY, Path(os.path.expanduser("~/nexus-omega")), Path(os.path.expanduser("~/agency"))]:
+        for target in [FRIDAY, NEXUS_ROOT, AGENCY_ROOT]:
             if not target.exists():
                 continue
             try:

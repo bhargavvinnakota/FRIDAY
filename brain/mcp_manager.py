@@ -11,10 +11,16 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+try:
+    from mcp import ClientSession, StdioServerParameters
+    from mcp.client.stdio import stdio_client
+except ImportError:
+    ClientSession = None
+    StdioServerParameters = None
+    stdio_client = None
 
-FRIDAY_ROOT = Path(os.path.expanduser("~/AI/friday"))
+from friday.paths import FRIDAY_ROOT
+
 MCP_CONFIG = FRIDAY_ROOT / "config" / "mcp_servers.json"
 
 class MCPManager:
@@ -41,6 +47,9 @@ class MCPManager:
 
     async def connect_all(self):
         """Initialize connections to all configured MCP servers."""
+        if stdio_client is None or StdioServerParameters is None:
+            print("MCP Warning: python mcp package not installed; skipping MCP tools.")
+            return
         for name, cfg in self.server_configs.items():
             try:
                 await self.connect_server(name, cfg)

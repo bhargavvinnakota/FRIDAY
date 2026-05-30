@@ -51,6 +51,7 @@ class TelegramSensor(BaseSensor):
         super().__init__(name="Telegram", interval=1.0)
         from friday.actions import comms
         self.comms = comms
+        self.direct_enabled = comms.telegram_direct_enabled()
         self.offset = self._load_offset()
 
     def _load_offset(self) -> int | None:
@@ -68,6 +69,10 @@ class TelegramSensor(BaseSensor):
             print(f"Error saving telegram offset: {e}")
 
     async def watch(self, queue: asyncio.Queue):
+        if not self.direct_enabled:
+            print("TelegramSensor disabled: OpenClaw owns Telegram.")
+            return
+
         print(f"📡 Sensor {self.name}: Starting Telegram Poll Loop.")
         while self.active:
             try:

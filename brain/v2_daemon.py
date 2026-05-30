@@ -141,8 +141,11 @@ class OmniDaemon:
         
         try:
             # Configure Sensors
-            logging.info("Initializing TelegramSensor...")
-            self.sensors.add_sensor(TelegramSensor())
+            if comms.telegram_direct_enabled():
+                logging.info("Initializing TelegramSensor...")
+                self.sensors.add_sensor(TelegramSensor())
+            else:
+                logging.info("Skipping TelegramSensor: OpenClaw owns Telegram.")
             
             logging.info("Initializing VisionSensor...")
             from .v2_sensors import VisionSensor

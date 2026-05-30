@@ -18,7 +18,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-FRIDAY = Path(os.path.expanduser("~/AI/friday"))
+from friday.paths import FRIDAY_ROOT
+
+FRIDAY = FRIDAY_ROOT
 PROOF_DIR = FRIDAY / "data" / "action_proofs"
 
 SENSITIVE_KEY_PARTS = {
@@ -191,4 +193,3 @@ def _fingerprint(value: Any, *, label: str = "redacted") -> str:
 
 def _safe_filename(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "_", value)[:180]
-

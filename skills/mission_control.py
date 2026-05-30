@@ -13,9 +13,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from friday.paths import FRIDAY_ROOT
 from .registry import Skill, Operation, SkillResult
 
-FRIDAY = Path(os.path.expanduser("~/AI/friday"))
+FRIDAY = FRIDAY_ROOT
 MANIFEST = FRIDAY / "docs" / "FRIDAY_MASTER_CAPABILITY_MANIFEST.md"
 RESEARCH = FRIDAY / "docs" / "FRIDAY_GROUND_RESEARCH_2026.md"
 REPORT_DIR = FRIDAY / "data" / "capability_reports"
@@ -122,6 +123,9 @@ class MissionControlSkill(Skill):
             gaps.append("Connector layer has a broken integration: " + ", ".join(item.get("id", "?") for item in connector_state.get("action_needed", [])))
         if connector_state.get("missing_p0"):
             gaps.append("Money stack is not complete; missing P0 connectors: " + ", ".join(item.get("id", "?") for item in connector_state.get("missing_p0", [])))
+        revenue = runtime.get("revenue", {})
+        if revenue.get("entries", 0) == 0:
+            gaps.append("Revenue ledger is wired but still empty; ingest webhooks or sync Razorpay once test keys are loaded.")
 
         return SkillResult(ok=True, data={
             "generated_at": datetime.now().isoformat(),
@@ -804,6 +808,7 @@ def _runtime_evidence() -> dict[str, Any]:
         cli_probe = str(e)[:500]
 
     connectors = _connector_status()
+    revenue = _revenue_status()
 
     return {
         "friday_cli_ok": friday_cli_ok,
@@ -811,6 +816,7 @@ def _runtime_evidence() -> dict[str, Any]:
         "agency": agency,
         "disk": disk,
         "connectors": connectors,
+        "revenue": revenue,
         "time": datetime.now().isoformat(),
     }
 
@@ -820,6 +826,18 @@ def _connector_status() -> dict[str, Any]:
         from friday.skills.connector_center import ConnectorCenterSkill
 
         res = ConnectorCenterSkill().op_status()
+        if res.ok and isinstance(res.data, dict):
+            return res.data
+    except Exception as e:
+        return {"error": f"{type(e).__name__}: {e}"[:200]}
+    return {}
+
+
+def _revenue_status() -> dict[str, Any]:
+    try:
+        from friday.skills.revenue_ledger import RevenueLedgerSkill
+
+        res = RevenueLedgerSkill().op_status()
         if res.ok and isinstance(res.data, dict):
             return res.data
     except Exception as e:

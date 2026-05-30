@@ -8,6 +8,7 @@ Friday :: Command Line Interface (v1.0)
     friday briefing               - run morning briefing now
     friday debrief                - run evening debrief now
     friday heartbeat              - run one sensor sweep
+    friday absorb-openclaw        - import the real OpenClaw conversational seed
     friday memory                 - inspect memory
     friday remember KEY=VALUE     - store a fact
     friday forget KEY             - delete fact
@@ -33,15 +34,16 @@ import os
 import sys
 from pathlib import Path
 
-# Always add the parent of the 'friday' package directory to sys.path
-FRIDAY_ROOT = Path(os.path.expanduser("~/AI/friday"))
-if str(FRIDAY_ROOT.parent) not in sys.path:
-    sys.path.insert(0, str(FRIDAY_ROOT.parent))
+# Make the active checkout importable even when it lives outside ~/AI/friday.
+_CLI_ROOT = Path(os.environ.get("FRIDAY_ROOT", Path(__file__).resolve().parent)).expanduser().resolve()
+if str(_CLI_ROOT.parent) not in sys.path:
+    sys.path.insert(0, str(_CLI_ROOT.parent))
 
 from friday.brain.engine import MultiEngine
 from friday.brain.memory import Memory
 from friday.brain.orchestrator import Orchestrator, Tool
 from friday.actions import nexus, comms, computer
+from friday.paths import FRIDAY_ROOT
 
 
 def cmd_ask(args):
@@ -253,6 +255,37 @@ def cmd_connectors(args):
         _invoke_json("connector_center", "status")
 
 
+def cmd_revenue(args):
+    if args.revenue_cmd == "latest":
+        _invoke_json("revenue_ledger", "latest", limit=args.limit)
+    elif args.revenue_cmd == "followups":
+        _invoke_json("revenue_ledger", "followups", limit=args.limit)
+    elif args.revenue_cmd == "sync-razorpay":
+        _invoke_json(
+            "revenue_ledger",
+            "sync_razorpay",
+            count=args.count,
+            include_payments=not args.no_payments,
+            include_links=not args.no_links,
+            include_orders=not args.no_orders,
+            include_subscriptions=args.include_subscriptions,
+            mode=args.mode,
+        )
+    elif args.revenue_cmd == "ingest-razorpay-webhook":
+        raw_body = Path(args.body_file).expanduser().read_text()
+        _invoke_json(
+            "revenue_ledger",
+            "ingest_razorpay_webhook",
+            raw_body=raw_body,
+            signature=args.signature,
+            webhook_secret=args.secret,
+            mode=args.mode,
+            source=args.source,
+        )
+    else:
+        _invoke_json("revenue_ledger", "status", days=args.days)
+
+
 def cmd_razorpay(args):
     note_map = _parse_note_pairs(getattr(args, "note", []) or [])
     if args.razorpay_cmd == "payments":
@@ -399,6 +432,16 @@ def cmd_memory(args):
         print(json.dumps(d.get("events", [])[-10:], indent=2))
 
 
+def cmd_absorb_openclaw(args):
+    from friday.brain.openclaw_absorb import absorb_openclaw
+
+    result = absorb_openclaw(
+        state_dir=Path(os.path.expanduser(args.state_dir)),
+        write_memory=not args.no_memory,
+    )
+    print(json.dumps(result, indent=2, default=str))
+
+
 def cmd_remember(args):
     mem = Memory()
     for pair in args.pairs:
@@ -462,7 +505,7 @@ def cmd_test(args):
     # 5. Computer
     print("[5/5] Computer...", end=" ")
     try:
-        r = computer.shell("ls ~/AI/friday")
+        r = computer.shell(f"ls {FRIDAY_ROOT}")
         print("OK" if r["ok"] else f"FAIL: {r['stderr']}")
     except Exception as e:
         print(f"FAIL: {e}")
@@ -724,7 +767,39 @@ def main():
     connectors.add_argument("--priority", default="", help="filter missing connectors by priority, e.g. P0")
     connectors.add_argument("--include-write-tests", action="store_true")
     connectors.set_defaults(func=cmd_connectors)
+    revenue = sub.add_parser("revenue", help="revenue ledger status, followups, and Razorpay ingestion")
+    revenue.set_defaults(func=cmd_revenue, revenue_cmd="status", days=30)
+    revenue_sub = revenue.add_subparsers(dest="revenue_cmd")
+    rev_status = revenue_sub.add_parser("status", help="show revenue ledger summary")
+    rev_status.add_argument("--days", type=int, default=30)
+    rev_status.set_defaults(func=cmd_revenue)
+
+    rev_latest = revenue_sub.add_parser("latest", help="show latest revenue ledger entries")
+    rev_latest.add_argument("--limit", type=int, default=10)
+    rev_latest.set_defaults(func=cmd_revenue)
+
+    rev_followups = revenue_sub.add_parser("followups", help="show approval-aware revenue followups")
+    rev_followups.add_argument("--limit", type=int, default=10)
+    rev_followups.set_defaults(func=cmd_revenue)
+
+    rev_ingest = revenue_sub.add_parser("ingest-razorpay-webhook", help="verify and ingest a Razorpay webhook body file")
+    rev_ingest.add_argument("--body-file", required=True)
+    rev_ingest.add_argument("--signature", required=True)
+    rev_ingest.add_argument("--secret", default="", help="optional webhook secret override for local testing")
+    rev_ingest.add_argument("--mode", default="", help="test or live")
+    rev_ingest.add_argument("--source", default="webhook")
+    rev_ingest.set_defaults(func=cmd_revenue)
+
+    rev_sync = revenue_sub.add_parser("sync-razorpay", help="pull recent Razorpay entities into the revenue ledger")
+    rev_sync.add_argument("--count", type=int, default=10)
+    rev_sync.add_argument("--no-payments", action="store_true")
+    rev_sync.add_argument("--no-links", action="store_true")
+    rev_sync.add_argument("--no-orders", action="store_true")
+    rev_sync.add_argument("--include-subscriptions", action="store_true")
+    rev_sync.add_argument("--mode", default="", help="test or live")
+    rev_sync.set_defaults(func=cmd_revenue)
     rz = sub.add_parser("razorpay", help="Razorpay payments rail status, dry-runs, and reads")
+    rz.set_defaults(func=cmd_razorpay, razorpay_cmd="status", probe=False, mode="")
     rz_sub = rz.add_subparsers(dest="razorpay_cmd")
     rz_status = rz_sub.add_parser("status", help="show Razorpay readiness")
     rz_status.add_argument("--probe", action="store_true")
@@ -811,6 +886,11 @@ def main():
     sub.add_parser("briefing", help="run morning briefing").set_defaults(func=cmd_briefing)
     sub.add_parser("debrief", help="run evening debrief").set_defaults(func=cmd_debrief)
     sub.add_parser("heartbeat", help="run one sensor sweep").set_defaults(func=cmd_heartbeat)
+
+    ao = sub.add_parser("absorb-openclaw", help="import the substantive OpenClaw prompts and replies")
+    ao.add_argument("--state-dir", default="~/.openclaw")
+    ao.add_argument("--no-memory", action="store_true", help="skip writing distilled facts into Friday memory")
+    ao.set_defaults(func=cmd_absorb_openclaw)
 
     m = sub.add_parser("memory", help="inspect memory")
     m.add_argument("--dump", action="store_true")

@@ -112,6 +112,16 @@ def handle_message(orch: Orchestrator, text: str, chat_id: str) -> None:
 
 
 def run_forever() -> None:
+    if not comms.telegram_direct_enabled():
+        msg = {
+            "blocked": True,
+            "reason": "telegram_single_owner_policy",
+            "owner": "openclaw",
+        }
+        comms.log_to_file("telegram_in", json.dumps(msg))
+        print("Friday Telegram sense disabled: OpenClaw owns Telegram.")
+        return
+
     print("📡 Friday Telegram sense online. Listening...")
     orch = build_orchestrator()
 

@@ -17,10 +17,11 @@ from pathlib import Path
 from typing import Any
 
 from friday.actions import nexus
+from friday.paths import FRIDAY_ROOT
 
 from .registry import Operation, Skill, SkillResult
 
-FRIDAY = Path(os.path.expanduser("~/AI/friday"))
+FRIDAY = FRIDAY_ROOT
 DATA_DIR = FRIDAY / "data"
 OPPORTUNITIES_FILE = DATA_DIR / "opportunities.jsonl"
 EXPERIMENTS_FILE = DATA_DIR / "money_experiments.jsonl"
